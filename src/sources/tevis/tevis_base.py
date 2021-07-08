@@ -22,7 +22,8 @@ class TevisBaseScraper(SourceBase):
             cnc_items += self.get_tevis_cnc(md)
 
         for cnc in cnc_items:
-            calendars.add(cnc["calendar"])
+            for c in cnc["calendar"].split("|"):
+                calendars.add(c)
 
         calendars = sorted(calendars)
 
@@ -79,6 +80,6 @@ class TevisBaseScraper(SourceBase):
 
         return cnc
 
-    def get_tevis_caldiv(self, calendar: str, year, week):
+    def get_tevis_caldiv(self, calendar: str, year, week) -> dict:
         url = f"{self.BASE_URL}/caldiv?cal={calendar}&cnc=0&cncdata=&week={year:04d}{week:02d}&json=1&offset=1"
         return self.get_json(url)
