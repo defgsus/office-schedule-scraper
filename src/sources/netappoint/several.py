@@ -2,10 +2,10 @@ from .netappoint_base import *
 
 
 class Bonn(NetAppointBase):
-    # TODO: SSL Certificate fail
     ID = "bonn"
     BASE_URL = "https://onlinetermine.bonn.de"
     NA_COMPANY = "stadtbonn"
+    VERIFY_CERTIFICATE = False
 
 
 class Dresden(NetAppointBase):

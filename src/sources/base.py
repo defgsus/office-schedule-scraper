@@ -15,6 +15,7 @@ installed_sources: Dict[str, Type["SourceBase"]] = dict()
 class SourceBase:
 
     CACHE_DIR = Path(__file__).resolve().parent.parent.parent / "cache"
+    VERIFY_CERTIFICATE = True
 
     ID = None
 
@@ -61,7 +62,7 @@ class SourceBase:
         for try_num in range(3):
             try:
                 print("downloading", url)
-                response = self.session.request(method, url, data=data, timeout=10)
+                response = self.session.request(method, url, data=data, timeout=10, verify=self.VERIFY_CERTIFICATE)
                 if encoding is None:
                     text = response.text
                 else:
