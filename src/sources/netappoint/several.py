@@ -37,3 +37,10 @@ class KreisGermersheimKfz(NetAppointBase):
     ID = "kreisgermersheimkfz"
     BASE_URL = "https://kfz.kreis-germersheim.de/netappoint"
     NA_COMPANY = "kreis-germersheim"
+
+
+class LeipzigStandesamt(NetAppointBase):
+    ID = "leipzigstandesamt"
+    BASE_URL = "https://adressen.leipzig.de/netappoint"
+    NA_COMPANY = "leipzig-standesamt"
+    NA_EXTRA_PARAMS = ["cur_causes=0|1|2"]

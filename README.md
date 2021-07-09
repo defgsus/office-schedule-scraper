@@ -55,3 +55,14 @@ Which leads to a lot of JSON files in the `snapshot` directory.
 
 Once a couple of other appointment interfaces are implemented i'll think
 of a way to unify the scraped data..
+
+
+
+
+### TODO-list of websites i found
+
+- https://terminonline.neubrandenburg.de/netappoint/index.php?option=showbooking&company=neubrandenburg&cur_cause=1&auth=&month=06&year=2021&sel=8
+  
+  They seem to have an older (or newer?) version of netappoint belonging to netcallup.de/qmatic
+
+- https://termin.kreis-oh.de/m/kreis-ostholstein/extern/calendar/?uid=e236b01b-460e-4c76-88db-7e083557c438&wsid=c262c86a-9973-4760-806a-bc9c75755014&lang=de

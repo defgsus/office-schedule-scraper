@@ -12,6 +12,7 @@ class NetAppointBase(SourceBase):
     """
     BASE_URL = None
     NA_COMPANY = None
+    NA_EXTRA_PARAMS = None
 
     def full_url(self, url_part: str) -> str:
         return self.BASE_URL.split("/")[0] + "//" + self.BASE_URL.split("/")[2] + url_part
@@ -46,9 +47,10 @@ class NetAppointBase(SourceBase):
         return ret_data
 
     def get_na_cases(self) -> Tuple[dict, str]:
-        soup = self.get_html_soup(
-            f"{self.BASE_URL}/index.php?company={self.NA_COMPANY}"
-        )
+        url = f"{self.BASE_URL}/index.php?company={self.NA_COMPANY}"
+        if self.NA_EXTRA_PARAMS:
+            url += "&" + "&".join(self.NA_EXTRA_PARAMS)
+        soup = self.get_html_soup(url)
 
         locations = {}
         for ul in soup.find_all("ul", {"class": "nat_casetypelist"}):
@@ -85,7 +87,13 @@ class NetAppointBase(SourceBase):
         cases["sentcasetypes"] = "Weiter"
         soup = self.get_html_soup(url, method="POST", data=cases)
 
+        # has clickable days?
         if not soup.find("a", {"class": "nat_calendar_weekday_bookable"}):
+            # has empty table?
+            if soup.find("table", {"class": "nat_calendar"}):
+                return []
+
+            # otherwise we need to select a location first
             soup = self.get_html_soup(
                 self.get_na_step_3(soup)
             )
