@@ -49,10 +49,7 @@ class NetAppointBase(SourceBase):
         soup = self.get_html_soup(
             f"{self.BASE_URL}/index.php?company={self.NA_COMPANY}"
         )
-        if soup.find("form", {"name": "frm_casetype"}):
-            return self._get_na_cases_v2(soup)
 
-    def _get_na_cases_v2(self, soup):
         locations = {}
         for ul in soup.find_all("ul", {"class": "nat_casetypelist"}):
             loc_id = ul.get("id")
@@ -77,9 +74,21 @@ class NetAppointBase(SourceBase):
         next_url = self.full_url(next_url)
         return locations, next_url
 
+    def get_na_step_3(self, soup) -> str:
+        for li in soup.find_all("li", {"class": "nat_casetypelist_casetype_li"}):
+            next_url = li.find("a").get("href")
+            if "step=3&" in next_url:
+                return self.full_url(next_url)
+        raise ValueError(f"step=3 url not found!\nContent: {soup}")
+
     def get_na_days(self, url: str, cases: dict) -> List[dict]:
         cases["sentcasetypes"] = "Weiter"
         soup = self.get_html_soup(url, method="POST", data=cases)
+
+        if not soup.find("a", {"class": "nat_calendar_weekday_bookable"}):
+            soup = self.get_html_soup(
+                self.get_na_step_3(soup)
+            )
 
         days = []
         for a in soup.find_all("a", {"class": "nat_calendar_weekday_bookable"}):
