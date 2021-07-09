@@ -3,7 +3,7 @@ import hashlib
 import os
 import json
 import datetime
-from typing import List, Dict, Type, Optional
+from typing import Tuple, List, Dict, Type, Optional, Union
 
 import requests
 import bs4
@@ -41,10 +41,13 @@ class SourceBase:
     def get_cache_dir(self) -> Path:
         return self.CACHE_DIR / self.ID
 
-    def get_cache_filename(self, x, data: Optional[dict] = None) -> Path:
+    def get_cache_filename(self, x, data: Optional[Union[str, dict]] = None) -> Path:
         x = str(x)
         if data:
-            x += json.dumps(data)
+            if isinstance(data, str):
+                x += data
+            else:
+                x += json.dumps(data)
         hash = hashlib.md5(x.encode("utf-8")).hexdigest()
         return self.get_cache_dir() / hash
 
@@ -83,8 +86,8 @@ class SourceBase:
             print(f"{type(e).__name__}: {e}\nGot: {text[:1000]}")
             raise
 
-    def get_html_soup(self, url, encoding=None):
-        text = self.get_url(url, encoding=encoding)
+    def get_html_soup(self, url, method="GET", data=None, encoding=None):
+        text = self.get_url(url, method=method, data=data, encoding=encoding)
         soup = self.soup(text)
         return soup
 

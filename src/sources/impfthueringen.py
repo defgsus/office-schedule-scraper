@@ -2,6 +2,15 @@ from .base import *
 
 
 class ImpfThueringen(SourceBase):
+    """
+    Covid-19 vaccination appointment for Thuringia.
+
+    There is actually a lot going on and data changes every couple of seconds.
+    They seem to provide a 3 minute slot for each appointment so it's
+    likely that the number of appointees can still be counted even
+    when scraping *only* every minute.
+
+    """
     ID = "impfthueringen"
 
     BASE_URL = "https://www.impfen-thueringen.de/terminvergabe"
