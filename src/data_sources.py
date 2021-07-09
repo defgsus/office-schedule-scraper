@@ -3,6 +3,7 @@ import json
 import datetime
 import os
 import io
+import glob
 from pathlib import Path
 from typing import Generator, Optional, List, Type
 
@@ -61,8 +62,21 @@ class DataSources:
         snapshot_dir = self.SNAPSHOT_DIR / s.ID / now.strftime("%Y-%m")
         os.makedirs(snapshot_dir, exist_ok=True)
 
+        # save some disk space
+        if self._is_same_data(data, snapshot_dir):
+            print(f"{s.ID}: unchanged")
+            data = {"unchanged": True}
+
         with open(snapshot_dir / now.strftime("%Y-%m-%d-%H-%M-%S.json"), "w") as fp:
             json.dump(data, fp, cls=JsonEncoder)
+
+    def _is_same_data(self, data: dict, path: Path) -> bool:
+        files = sorted(path.glob("*.json"))
+        if not files:
+            return False
+        file = files[-1]
+        with open(str(file)) as fp:
+            return data == json.load(fp)
 
 
 class JsonEncoder(json.JSONEncoder):
