@@ -21,13 +21,19 @@ class Dresden(NetAppointBase):
     NA_COMPANY = "stadtdresden-fs"
 
 
+class DresdenKfz(NetAppointBase):
+    ID = "dresdenkfz"
+    BASE_URL = "https://termine.dresden.de/netappoint"
+    NA_COMPANY = "stadtdresden-kfz"
+
+
 class KreisBergstrasse(NetAppointBase):
     ID = "kreisbergstrasse"
     BASE_URL = "https://terminreservierungverkehr.kreis-bergstrasse.de/netappoint"
     NA_COMPANY = "bergstrasse"
 
 
-class KreisGermersheim(NetAppointBase):
-    ID = "kreisgermersheim"
+class KreisGermersheimKfz(NetAppointBase):
+    ID = "kreisgermersheimkfz"
     BASE_URL = "https://kfz.kreis-germersheim.de/netappoint"
     NA_COMPANY = "kreis-germersheim"
