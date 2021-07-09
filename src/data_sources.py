@@ -63,17 +63,24 @@ class DataSources:
         os.makedirs(snapshot_dir, exist_ok=True)
 
         # save some disk space
+        filename = snapshot_dir / now.strftime("%Y-%m-%d-%H-%M-%S.json")
         if self._is_same_data(data, snapshot_dir):
             print(f"{s.ID}: unchanged")
-            data = {"unchanged": True}
+            data = {}
+            filename = snapshot_dir / now.strftime("%Y-%m-%d-%H-%M-%S-unchanged.json")
 
-        with open(snapshot_dir / now.strftime("%Y-%m-%d-%H-%M-%S.json"), "w") as fp:
+        print(f"writing {filename}")
+        with open(filename, "w") as fp:
             json.dump(data, fp, cls=JsonEncoder)
 
     def _is_same_data(self, data: dict, path: Path) -> bool:
-        files = sorted(path.glob("*.json"))
+        files = sorted(filter(
+            lambda n: "unchanged" not in str(n),
+            path.glob("*.json")
+        ))
         if not files:
             return False
+
         file = files[-1]
         with open(str(file)) as fp:
             return data == json.load(fp)
