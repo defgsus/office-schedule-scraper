@@ -2,6 +2,7 @@ cache/
 snapshots/
 errors/
 .idea/
+*.sh
 
 .ipynb_checkpoints/
 
