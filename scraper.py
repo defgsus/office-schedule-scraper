@@ -32,6 +32,10 @@ def parse_args():
         help="Enable caching of websites"
     )
 
+    parser.add_argument(
+        "-p", "--processes", type=int, default=1,
+        help="Multiple processes for snapshot mode"
+    )
 
     return parser.parse_args()
 
@@ -47,7 +51,7 @@ def main(args):
         sources.dump_list()
 
     elif args.command == "snapshot":
-        sources.make_snapshot(num_weeks=args.weeks)
+        sources.make_snapshot(num_weeks=args.weeks, processes=args.processes)
 
     elif args.command == "dump-snapshot":
         sources.dump_snapshot(num_weeks=args.weeks)

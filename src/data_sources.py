@@ -2,8 +2,8 @@ import fnmatch
 import json
 import datetime
 import os
-import io
-import glob
+import traceback
+from multiprocessing.pool import Pool
 from pathlib import Path
 from typing import Generator, Optional, List, Type
 
@@ -13,6 +13,7 @@ from .sources.base import installed_sources, SourceBase
 class DataSources:
 
     SNAPSHOT_DIR = Path(__file__).resolve().parent.parent / "snapshots"
+    ERROR_DIR = Path(__file__).resolve().parent.parent / "errors"
 
     def __init__(
             self,
@@ -51,15 +52,35 @@ class DataSources:
             print(f"---------- {s.ID} ----------")
             print(json.dumps(data, indent=2))
 
-    def make_snapshot(self, num_weeks: int = 4):
-        for s in self.sources(num_weeks=num_weeks):
-            self._store_snapshot(s)
+    def make_snapshot(self, num_weeks: int = 4, processes: int = 1):
+        sources = self.sources(num_weeks=num_weeks)
 
-    def _store_snapshot(self, s: SourceBase):
+        if processes <= 1:
+            for s in sources:
+                self._make_and_store_snapshot(s)
+        else:
+            pool = Pool(processes)
+            pool.map(self._make_and_store_snapshot, sources)
+
+    def _make_and_store_snapshot(self, s: SourceBase):
+        error = False
+        try:
+            data = s.make_snapshot()
+        except Exception as e:
+            print(f"ERROR: {type(e).__name__}: {e}")
+            data = {
+                "class": type(e).__name__,
+                "message": str(e),
+                "stacktrace": traceback.format_exc(limit=3),
+            }
+            error = True
+
+        self._store_snapshot(s, data, error)
+
+    def _store_snapshot(self, s: SourceBase, data: dict, error: bool = False):
         now = datetime.datetime.now()
-        data = s.make_snapshot()
 
-        snapshot_dir = self.SNAPSHOT_DIR / s.ID / now.strftime("%Y-%m")
+        snapshot_dir = (self.SNAPSHOT_DIR if not error else self.ERROR_DIR) / s.ID / now.strftime("%Y-%m")
         os.makedirs(snapshot_dir, exist_ok=True)
 
         # save some disk space
