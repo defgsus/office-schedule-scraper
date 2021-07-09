@@ -66,3 +66,11 @@ of a way to unify the scraped data..
   They seem to have an older (or newer?) version of netappoint belonging to netcallup.de/qmatic
 
 - https://termin.kreis-oh.de/m/kreis-ostholstein/extern/calendar/?uid=e236b01b-460e-4c76-88db-7e083557c438&wsid=c262c86a-9973-4760-806a-bc9c75755014&lang=de
+- https://www.leipzig.de/fachanwendungen/termine/index.html
+
+  Using another system (probably) by dmk-ebusiness.de
+  
+- https://service.magdeburg.de/netappoint/index.php?company=magdeburg
+  
+  The netappoint configuration is somewhat complex or broken or both. It's
+  already hard to get an appoint as a human, let alone as a python script.

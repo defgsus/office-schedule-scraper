@@ -28,10 +28,18 @@ class NetAppointBase(SourceBase):
                 case: "0"
                 for case in location["cases"]
             }
-            case_dict[location["cases"][0]] = 1
+            case_dict[location["cases"][0]] = "1"
 
             day_times = []
-            days = self.get_na_days(next_url, case_dict)
+            try:
+                days = self.get_na_days(next_url, case_dict)
+            except Exception:
+                if len(case_dict) > 1:
+                    case_dict[location["cases"][0]] = "0"
+                    case_dict[location["cases"][1]] = "1"
+                    days = self.get_na_days(next_url, case_dict)
+                else:
+                    raise
 
             # for some reason this is important,
             #   otherwise the day-select-screen comes up again
@@ -63,9 +71,8 @@ class NetAppointBase(SourceBase):
             for select in ul.find_all("select", {"class": "nat_casetypelist_casetype"}):
                 cases.append(select.get("name"))
 
-            if not cases:
-                for input in ul.find_all("input", {"class": "nat_casetypelist_casetype casetype_checkbox"}):
-                    cases.append(input.get("name"))
+            for input in ul.find_all("input", {"class": "nat_casetypelist_casetype casetype_checkbox"}):
+                cases.append(input.get("name"))
 
             locations[loc_id] = {
                 "name": loc_name,

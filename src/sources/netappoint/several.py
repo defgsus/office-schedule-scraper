@@ -27,6 +27,12 @@ class DresdenKfz(NetAppointBase):
     NA_COMPANY = "stadtdresden-kfz"
 
 
+class KaiserslauternAusl(NetAppointBase):
+    ID = "kaiserslauternausl"
+    BASE_URL = "https://www3.kaiserslautern.de/netappoint"
+    NA_COMPANY = "kaiserslautern-ausl"
+
+
 class KreisBergstrasse(NetAppointBase):
     ID = "kreisbergstrasse"
     BASE_URL = "https://terminreservierungverkehr.kreis-bergstrasse.de/netappoint"
@@ -44,3 +50,9 @@ class LeipzigStandesamt(NetAppointBase):
     BASE_URL = "https://adressen.leipzig.de/netappoint"
     NA_COMPANY = "leipzig-standesamt"
     NA_EXTRA_PARAMS = ["cur_causes=0|1|2"]
+
+
+class Magdeburg(NetAppointBase):
+    ID = "magdeburg"
+    BASE_URL = "https://service.magdeburg.de/netappoint"
+    NA_COMPANY = "magdeburg"
