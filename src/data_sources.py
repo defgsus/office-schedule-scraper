@@ -17,12 +17,16 @@ class DataSources:
             self,
             use_cache: bool = False,
             include: Optional[str] = None,
+            exclude: Optional[str] = None,
     ):
         self.use_cache = use_cache
         self.include = include
+        self.exclude = exclude
 
         self.source_classes: List[Type[SourceBase]] = []
         for name, cls in installed_sources.items():
+            if exclude and fnmatch.fnmatchcase(name, exclude):
+                continue
             if include and not fnmatch.fnmatchcase(name, include):
                 continue
 
@@ -59,7 +63,6 @@ class DataSources:
 
         with open(snapshot_dir / now.strftime("%Y-%m-%d-%H-%M-%S.json"), "w") as fp:
             json.dump(data, fp, cls=JsonEncoder)
-
 
 
 class JsonEncoder(json.JSONEncoder):

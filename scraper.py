@@ -17,6 +17,10 @@ def parse_args():
         "-i", "--include", type=str,
         help="wildcard pattern for sources to include"
     )
+    parser.add_argument(
+        "-e", "--exclude", type=str,
+        help="wildcard pattern for sources to exclude"
+    )
 
     parser.add_argument(
         "-w", "--weeks", type=int, default=4,
@@ -36,6 +40,7 @@ def main(args):
     sources = DataSources(
         use_cache=args.cache,
         include=args.include,
+        exclude=args.exclude,
     )
 
     if args.command == "list":

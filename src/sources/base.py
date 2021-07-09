@@ -3,7 +3,7 @@ import hashlib
 import os
 import json
 import datetime
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Optional
 
 import requests
 import bs4
@@ -41,14 +41,18 @@ class SourceBase:
     def get_cache_dir(self) -> Path:
         return self.CACHE_DIR / self.ID
 
-    def get_cache_filename(self, x) -> Path:
-        hash = hashlib.md5(str(x).encode("utf-8")).hexdigest()
+    def get_cache_filename(self, x, data: Optional[dict] = None) -> Path:
+        x = str(x)
+        if data:
+            x += json.dumps(data)
+        hash = hashlib.md5(x.encode("utf-8")).hexdigest()
         return self.get_cache_dir() / hash
 
     def get_url(self, url, method="GET", data=None, encoding=None) -> str:
         if self.use_cache:
-            if self.get_cache_filename(url).exists():
-                with open(str(self.get_cache_filename(url))) as fp:
+            cache_filename = self.get_cache_filename(url, data)
+            if cache_filename.exists():
+                with open(str(cache_filename)) as fp:
                     return fp.read()
 
         for try_num in range(3):
@@ -66,7 +70,7 @@ class SourceBase:
 
         if self.use_cache:
             os.makedirs(str(self.get_cache_dir()), exist_ok=True)
-            with open(str(self.get_cache_filename(url)), "w") as fp:
+            with open(str(cache_filename), "w") as fp:
                 fp.write(text)
 
         return text
@@ -81,5 +85,8 @@ class SourceBase:
 
     def get_html_soup(self, url, encoding=None):
         text = self.get_url(url, encoding=encoding)
-        soup = bs4.BeautifulSoup(text, features="html.parser")
+        soup = self.soup(text)
         return soup
+
+    def soup(self, html: str):
+        return bs4.BeautifulSoup(html, features="html.parser")
