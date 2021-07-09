@@ -11,7 +11,7 @@ class NetAppointBase(SourceBase):
     Need to subclass and define class-attribute BASE_URL (w/o trailing slash).
     """
     BASE_URL = None
-    COMPANY = None
+    NA_COMPANY = None
 
     def full_url(self, url_part: str) -> str:
         return self.BASE_URL.split("/")[0] + "//" + self.BASE_URL.split("/")[2] + url_part
@@ -47,8 +47,12 @@ class NetAppointBase(SourceBase):
 
     def get_na_cases(self) -> Tuple[dict, str]:
         soup = self.get_html_soup(
-            f"{self.BASE_URL}/index.php?company={self.COMPANY}"
+            f"{self.BASE_URL}/index.php?company={self.NA_COMPANY}"
         )
+        if soup.find("form", {"name": "frm_casetype"}):
+            return self._get_na_cases_v2(soup)
+
+    def _get_na_cases_v2(self, soup):
         locations = {}
         for ul in soup.find_all("ul", {"class": "nat_casetypelist"}):
             loc_id = ul.get("id")
@@ -57,8 +61,12 @@ class NetAppointBase(SourceBase):
                 loc_name = loc_name[10:]
 
             cases = []
-            for select in soup.find_all("select", {"class": "nat_casetypelist_casetype"}):
+            for select in ul.find_all("select", {"class": "nat_casetypelist_casetype"}):
                 cases.append(select.get("name"))
+
+            if not cases:
+                for input in ul.find_all("input", {"class": "nat_casetypelist_casetype casetype_checkbox"}):
+                    cases.append(input.get("name"))
 
             locations[loc_id] = {
                 "name": loc_name,
