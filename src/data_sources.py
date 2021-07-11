@@ -129,10 +129,38 @@ class DataSources:
                 f"errors: {num_errors}"
             )
 
+    def dump_convert_snapshots(self):
+        data = self.convert_snapshots()
+        print(json.dumps(data, indent=2, cls=JsonEncoder))
+
+    def convert_snapshots(self) -> dict:
+        sources = self.sources()
+        sources_data = {s.ID: None for s in sources}
+        for s in sources:
+            for dt, snapshot_data in s.iter_snapshot_data():
+                try:
+                    data = s.convert_snapshot(snapshot_data)
+                except Exception as e:
+                    print(f"ERROR in {s.ID} @ {dt}")
+                    print(snapshot_data)
+                    raise
+
+                if sources_data[s.ID] is None:
+                    sources_data[s.ID] = []
+                sources_data[s.ID].append({
+                    "snapshot_date": dt,
+                    "data": data,
+                })
+
+        return sources_data
+
+
 
 class JsonEncoder(json.JSONEncoder):
 
     def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
         try:
             return super().default(o)
         except Exception:

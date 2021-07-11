@@ -4,6 +4,7 @@ import os
 import json
 import datetime
 import traceback
+from copy import deepcopy
 from typing import Tuple, List, Dict, Type, Optional, Union, Generator
 
 import requests
@@ -47,6 +48,10 @@ class SourceBase:
         }
 
     def make_snapshot(self):
+        raise NotImplementedError
+
+    @classmethod
+    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
         raise NotImplementedError
 
     def now(self) -> datetime.datetime:
@@ -121,9 +126,27 @@ class SourceBase:
         return bs4.BeautifulSoup(html, features="html.parser")
 
     def iter_snapshot_filenames(self) -> Generator[Tuple[datetime.datetime, Path], None, None]:
-        for fn in (self.SNAPSHOT_DIR / self.ID).glob("*/*.json"):
+        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
             dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
             yield dt, fn
+
+    def iter_snapshot_data(self, with_unchanged: bool = False) -> Generator[Tuple[datetime.datetime, Union[dict, list]], None, None]:
+        previous_data = None
+        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
+            dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
+            unchanged = "unchanged.json" in str(fn)
+            if not unchanged:
+                data = json.loads(fn.read_text())
+                if not (isinstance(data, dict) and "unchanged" in data):
+                    yield dt, data
+                    previous_data = deepcopy(data)
+                    continue
+
+            # yield unchanged data
+            if with_unchanged:
+                assert previous_data is not None, f"unchanged data before real data @ {dt} / {fn}"
+                previous_data["unchanged"] = True
+                yield dt, previous_data
 
     def iter_error_filenames(self) -> Generator[Tuple[datetime.datetime, Path], None, None]:
         for fn in (self.ERROR_DIR / self.ID).glob("*/*.json"):

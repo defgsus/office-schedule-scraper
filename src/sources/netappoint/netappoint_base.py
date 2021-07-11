@@ -23,6 +23,20 @@ class NetAppointBase(SourceBase):
         "Bitte geben Sie mindestens 1 Dienstleistung an."
     )
 
+    @classmethod
+    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+        ret_data = []
+        for row in data:
+            ret_data.append({
+                "location_id": row["location"],
+                "location_name": row["location"],
+                "dates": [
+                    datetime.datetime.strptime(d, "%Y-%m-%d %H:%M")
+                    for d in row["dates"]
+                ]
+            })
+        return ret_data
+
     def full_url(self, url_part: str) -> str:
         return self.BASE_URL.split("/")[0] + "//" + self.BASE_URL.split("/")[2] + url_part
 
