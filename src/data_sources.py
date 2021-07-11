@@ -5,7 +5,7 @@ import os
 import traceback
 from multiprocessing.pool import Pool
 from pathlib import Path
-from typing import Generator, Optional, List, Type
+from typing import Generator, Optional, List, Type, Union
 
 from tqdm import tqdm
 
@@ -36,8 +36,10 @@ class DataSources:
         self.source_classes.sort(key=lambda s: s.ID)
 
     def dump_list(self):
+        max_id_len = max(len(s.ID) for s in self.source_classes)
+        max_type_len = max(len(s.SCRAPER_TYPE) for s in self.source_classes)
         for i, s in enumerate(self.source_classes):
-            print(f"{i+1}. {s.ID}")
+            print(f"{i+1:3} {s.SCRAPER_TYPE:{max_type_len}} {s.ID:{max_id_len}}")
 
     def sources(self, num_weeks: int = 4):
         return [
@@ -104,8 +106,12 @@ class DataSources:
             return False
 
         file = files[-1]
+        # print("comparing against", file)
         with open(str(file)) as fp:
-            return data == json.load(fp)
+            unchanged = data == json.load(fp)
+            # if unchanged:
+            #     print("SAMES AS", file)
+            return unchanged
 
     def dump_snapshot_status(self):
         sources = self.sources()
@@ -135,11 +141,15 @@ class DataSources:
         data = self.convert_snapshots()
         print(json.dumps(data, indent=2, cls=JsonEncoder))
 
-    def convert_snapshots(self, with_unchanged: bool = False) -> dict:
+    def convert_snapshots(
+            self,
+            with_unchanged: bool = False,
+            with_invalid: bool = False,
+    ) -> dict:
         sources = self.sources()
         sources_data = {s.ID: None for s in sources}
         for s in tqdm(sources):
-            for dt, snapshot_data in s.iter_snapshot_data(with_unchanged=with_unchanged):
+            for dt, unchanged, snapshot_data in s.iter_snapshot_data(with_unchanged=with_unchanged):
                 try:
                     data = s.convert_snapshot(snapshot_data)
                 except Exception as e:
@@ -147,14 +157,99 @@ class DataSources:
                     print(snapshot_data)
                     raise
 
+                if data is None and not with_invalid:
+                    continue
+
                 if sources_data[s.ID] is None:
                     sources_data[s.ID] = []
                 sources_data[s.ID].append({
+                    "office_id": s.ID,
                     "snapshot_date": dt,
+                    "unchanged": unchanged,
+                    "valid": data is not None,
                     "data": data,
                 })
 
         return sources_data
+
+    def dump_snapshot_changes(self, with_zeros: bool = False):
+        import pandas as pd
+        changes = self.get_snapshot_changes(with_zeros=with_zeros)
+        #for row in changes:
+        #    print(row)
+        df = pd.DataFrame(changes).set_index("date")
+        for source_id in sorted(df["source_id"].unique()):
+            for loc_id in sorted(df["location_id"].unique()):
+                df2 = df[df["source_id"] == source_id]
+                df2 = df2[df2["location_id"] == loc_id]
+                if not df2.empty:
+                    print(df2.to_string(max_rows=max(1, df.shape[0])))
+                    print()
+
+    def get_snapshot_changes(self, days_ahead: int = 0, with_zeros: bool = False):
+        sources = self.sources()
+        ret_data = []
+        for s in tqdm(sources):
+            prev_locations = dict()
+            for idx, (dt, unchanged, snapshot_data) in enumerate(s.iter_snapshot_data(with_unchanged=False)):
+                data = self.convert_snapshot(s, snapshot_data)
+                if data is None:
+                    continue
+
+                dt_day = dt.replace(hour=0, minute=0)
+                for location in data:
+                    if days_ahead:
+                        location["dates"] = filter(
+                            lambda d: (d.replace(hour=0, minute=0) - dt_day).days <= days_ahead,
+                            location["dates"],
+                        )
+                    location["dates"] = set(location["dates"])
+
+                    if len(location["dates"]) == 0:
+                        continue
+
+                    appointments = set()
+                    cancellations = set()
+
+                    if location["location_id"] in prev_locations:
+                        #if location["location_id"] != "Meldewesen":
+                        #    continue
+                        prev_location = prev_locations[location["location_id"]]
+
+                        sorted_dates = sorted(location["dates"])
+                        for d in prev_location["dates"]:
+                            if d not in location["dates"] and sorted_dates[0] <= d <= sorted_dates[-1]:
+                                appointments.add(d)
+
+                        sorted_prev_dates = sorted(prev_location["dates"])
+                        for d in location["dates"]:
+                            if d not in prev_location["dates"] and sorted_prev_dates[0] <= d <= sorted_prev_dates[-1]:
+                                cancellations.add(d)
+
+                    prev_locations[location["location_id"]] = location
+
+                    #print(location["location_id"], ",".join())
+                    if idx == 0 or with_zeros or appointments or cancellations:
+                        ret_data.append({
+                            "source_id": s.ID,
+                            "location_id": location["location_id"],
+                            "date": dt,
+                            "free_dates": len(location["dates"]),
+                            "appointments": len(appointments),
+                            "cancellations": len(cancellations),
+                            #"appointments_s": str(appointments),
+                            "min_free": sorted(location['dates'])[0],
+                            "max_free": sorted(location['dates'])[-1],
+                        })
+        return ret_data
+
+    def convert_snapshot(self, s: SourceBase, snapshot_data: Union[dict, list]) -> Optional[List[dict]]:
+        data = s.convert_snapshot(snapshot_data)
+        if data is None:
+            return data
+        for row in data:
+            row["office_id"] = f"{s.ID}-{row['location_id']}"
+        return data
 
 
 class JsonEncoder(json.JSONEncoder):

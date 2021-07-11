@@ -4,6 +4,8 @@ import os
 import json
 import datetime
 import traceback
+import unicodedata
+import re
 from copy import deepcopy
 from typing import Tuple, List, Dict, Type, Optional, Union, Generator
 
@@ -12,6 +14,9 @@ import bs4
 
 
 installed_sources: Dict[str, Type["SourceBase"]] = dict()
+
+
+_re_double_minus = re.compile(r"--+")
 
 
 class ScraperError(Exception):
@@ -54,8 +59,23 @@ class SourceBase:
     def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
         raise NotImplementedError
 
+    # ---- below are all helpers for derived classes ----
+
     def now(self) -> datetime.datetime:
         return datetime.datetime.now()
+
+    @classmethod
+    def to_id(cls, name: str) -> str:
+        name = str(name).lower()
+        name = name.replace("ß", "ss")
+        name = unicodedata.normalize('NFKD', name).encode("ascii", "ignore").decode("ascii")
+
+        name = "".join(
+            c if c.isalnum() or c in " \t" else "-"
+            for c in name
+        ).replace(" ", "-")
+
+        return _re_double_minus.sub("-", name).strip("-")
 
     def get_cache_dir(self) -> Path:
         return self.CACHE_DIR / self.ID
@@ -130,7 +150,10 @@ class SourceBase:
             dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
             yield dt, fn
 
-    def iter_snapshot_data(self, with_unchanged: bool = False) -> Generator[Tuple[datetime.datetime, Union[dict, list]], None, None]:
+    def iter_snapshot_data(
+            self,
+            with_unchanged: bool = False
+    ) -> Generator[Tuple[datetime.datetime, bool, Union[dict, list]], None, None]:
         previous_data = None
         for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
             dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
@@ -138,15 +161,14 @@ class SourceBase:
             if not unchanged:
                 data = json.loads(fn.read_text())
                 if not (isinstance(data, dict) and "unchanged" in data):
-                    yield dt, data
-                    previous_data = deepcopy(data)
+                    yield dt, False, data
+                    previous_data = data
                     continue
 
             # yield unchanged data
             if with_unchanged:
                 assert previous_data is not None, f"unchanged data before real data @ {dt} / {fn}"
-                previous_data["unchanged"] = True
-                yield dt, previous_data
+                yield dt, True, previous_data
 
     def iter_error_filenames(self) -> Generator[Tuple[datetime.datetime, Path], None, None]:
         for fn in (self.ERROR_DIR / self.ID).glob("*/*.json"):

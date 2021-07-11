@@ -24,11 +24,11 @@ class NetAppointBase(SourceBase):
     )
 
     @classmethod
-    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+    def convert_snapshot(cls, data: Union[dict, list]) -> Optional[List[dict]]:
         ret_data = []
         for row in data:
             ret_data.append({
-                "location_id": row["location"],
+                "location_id": cls.to_id(row["location"]),
                 "location_name": row["location"],
                 "dates": [
                     datetime.datetime.strptime(d, "%Y-%m-%d %H:%M")

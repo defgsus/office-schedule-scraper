@@ -14,9 +14,12 @@ class TevisBaseScraper(SourceBase):
     SCRAPER_TYPE = "tevis"
 
     @classmethod
-    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+    def convert_snapshot(cls, data: Union[dict, list]) -> Optional[List[dict]]:
         #print(json.dumps(data["cnc"], indent=2))
         #exit()
+
+        if not data["cnc"]:
+            return None
 
         cal_id_2_name = dict()
         for c in data["cnc"]:
