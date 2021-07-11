@@ -11,6 +11,7 @@ def parse_args():
         "command", type=str,
         choices=[
             "list", "snapshot", "dump-snapshot", "snapshot-status", "dump-convert", "dump-changes",
+            "debug"
         ],
         help="Command to execute",
     )
@@ -39,6 +40,11 @@ def parse_args():
         help="Multiple processes for snapshot mode"
     )
 
+    parser.add_argument(
+        "--resample", type=str, default=None,
+        help="pandas time resampling option for 'dump-changes' mode"
+    )
+
     return parser.parse_args()
 
 
@@ -65,7 +71,8 @@ def main(args):
         sources.dump_convert_snapshots()
 
     elif args.command == "dump-changes":
-        sources.dump_snapshot_changes()
+        sources.dump_snapshot_changes(resample=args.resample)
+
 
     else:
         print(f"Invalid command '{args.command}'")

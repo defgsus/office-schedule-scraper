@@ -29,6 +29,68 @@ class ImpfThueringen(SourceBase):
             })
         return ret_data
 
+    @classmethod
+    def compare_snapshot_location(
+            cls,
+            prev_timestamp: datetime.datetime, prev_data: dict,
+            timestamp: datetime.datetime, data: dict,
+            working_data: dict,
+    ) -> Tuple[set, set]:
+        appointments = set()
+        cancellations = set()
+        bookings = working_data
+
+        for d, pd in zip(data["dates"], prev_data["dates"]):
+
+            # a date on the website means it's free
+            if bookings.get("d") == "booked":
+                cancellations.add(d)
+            bookings[d] = "free"
+
+            # if the date is larger than the previous one, the previous one is booked
+            if d > pd:
+                appointments.add(pd)
+                bookings[pd] = "booked"
+
+        return appointments, cancellations
+
+    @classmethod
+    def compare_snapshot_location_NAIVE(
+            cls,
+            prev_timestamp: datetime.datetime, prev_data: dict,
+            timestamp: datetime.datetime, data: dict,
+            working_data: dict,
+    ) -> Tuple[set, set]:
+        sorted_prev_dates = sorted(prev_data["dates"])
+        sorted_dates = sorted(data["dates"])
+
+        appointments, cancellations = set(), set()
+
+        if sorted_dates[0] < sorted_prev_dates[0]:
+            d = sorted_prev_dates[0]
+            while d > sorted_dates[0]:
+                if cls.is_business_hour(d):
+                    cancellations.add(d)
+                d -= datetime.timedelta(minutes=3)
+
+        elif sorted_dates[0] > sorted_prev_dates[0]:
+            d = sorted_prev_dates[0]
+            while d < sorted_dates[0]:
+                if d > timestamp and cls.is_business_hour(d):
+                    appointments.add(d)
+                d += datetime.timedelta(minutes=3)
+
+        return appointments, cancellations
+
+    @classmethod
+    def is_business_hour(cls, dt: datetime.datetime) -> bool:
+        weekday = dt.isoweekday()
+        if weekday in (6, 7):
+            return False
+        if not 8 <= dt.hour <= 16:
+            return False
+        return True
+
     def make_snapshot(self):
         locations = self.get_locations()
 

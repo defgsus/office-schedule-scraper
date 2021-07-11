@@ -63,7 +63,8 @@ class SourceBase:
     def compare_snapshot_location(
             cls,
             prev_timestamp: datetime.datetime, prev_data: dict,
-            timestamp: datetime.datetime, data: dict
+            timestamp: datetime.datetime, data: dict,
+            working_data: dict,
     ) -> Tuple[set, set]:
         appointments, cancellations = set(), set()
 

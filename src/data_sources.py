@@ -173,7 +173,7 @@ class DataSources:
 
         return sources_data
 
-    def dump_snapshot_changes(self, with_zeros: bool = False):
+    def dump_snapshot_changes(self, with_zeros: bool = False, resample: Optional[str] = None):
         import pandas as pd
         changes = self.get_snapshot_changes(with_zeros=with_zeros)
         df = pd.DataFrame(changes).set_index("date")
@@ -182,12 +182,20 @@ class DataSources:
             for loc_id in sorted(df["location_id"].unique()):
                 df2 = df[df["source_id"] == source_id]
                 df2 = df2[df2["location_id"] == loc_id]
+                if resample:
+                    df2 = df2.resample(resample).sum()
+                    df2 = pd.DataFrame({
+                        "date": df2.index, "source_id": source_id, "location_id": loc_id,
+                        "appointments": df2["appointments"],
+                        "cancellations": df2["cancellations"],
+                    }).set_index("date")
                 if not df2.empty:
                     print(df2.to_string(max_rows=max(1, df.shape[0])))
                     print()
 
     def get_snapshot_changes(self, days_ahead: int = 0, with_zeros: bool = False):
         sources = self.sources()
+        working_data = {}
         ret_data = []
         for s in tqdm(sources):
             prev_locations = dict()
@@ -198,6 +206,8 @@ class DataSources:
 
                 dt_day = dt.replace(hour=0, minute=0)
                 for location in data:
+                    loc_id = location["location_id"]
+
                     if days_ahead:
                         location["dates"] = filter(
                             lambda d: (d.replace(hour=0, minute=0) - dt_day).days <= days_ahead,
@@ -211,14 +221,17 @@ class DataSources:
                     appointments = set()
                     cancellations = set()
 
-                    if location["location_id"] in prev_locations:
-                        prev_date, prev_location = prev_locations[location["location_id"]]
+                    if loc_id in prev_locations:
+                        if loc_id not in working_data:
+                            working_data[loc_id] = {}
+
+                        prev_date, prev_location = prev_locations[loc_id]
 
                         appointments, cancellations = s.compare_snapshot_location(
-                            prev_date, prev_location, dt, location
+                            prev_date, prev_location, dt, location, working_data[loc_id],
                         )
 
-                    prev_locations[location["location_id"]] = (dt, location)
+                    prev_locations[loc_id] = (dt, location)
 
                     if idx == 0 or with_zeros or appointments or cancellations:
                         ret_data.append({
