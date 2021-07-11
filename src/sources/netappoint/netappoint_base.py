@@ -10,6 +10,8 @@ class NetAppointBase(SourceBase):
 
     Need to subclass and define class-attribute BASE_URL (w/o trailing slash).
     """
+    SCRAPER_TYPE = "netappoint"
+
     BASE_URL = None
     NA_COMPANY = None
     NA_EXTRA_PARAMS = None

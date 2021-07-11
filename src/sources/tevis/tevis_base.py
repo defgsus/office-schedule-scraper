@@ -11,6 +11,8 @@ class TevisBaseScraper(SourceBase):
 
     The list of references is here: https://www.kommunix.de/referenzen/
     """
+    SCRAPER_TYPE = "tevis"
+
     def make_snapshot(self):
         now = self.now()
 

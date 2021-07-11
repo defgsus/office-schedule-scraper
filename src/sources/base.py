@@ -28,6 +28,7 @@ class SourceBase:
     SNAPSHOT_DIR = Path(__file__).resolve().parent.parent.parent / "snapshots"
     ERROR_DIR = Path(__file__).resolve().parent.parent.parent / "errors"
 
+    SCRAPER_TYPE = "custom"
     VERIFY_CERTIFICATE = True
     ID = None
 
@@ -98,9 +99,18 @@ class SourceBase:
         except Exception as e:
             raise ScraperError(
                 f"{type(e).__name__}: {e}", data={
-                    "text": text[:10000]
+                    "text": self._get_html_error_text(text)
                 }
             )
+
+    def _get_html_error_text(self, text: str) -> str:
+        if "<title>" in text:
+            msg = text[text.index("<title>")+7:]
+            if "</title>" in msg:
+                return msg[:msg.index("</title>")]
+        else:
+            msg = text
+        return msg[:10000]
 
     def get_html_soup(self, url, method="GET", data=None, encoding=None):
         text = self.get_url(url, method=method, data=data, encoding=encoding)

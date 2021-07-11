@@ -108,6 +108,7 @@ class DataSources:
     def dump_snapshot_status(self):
         sources = self.sources()
         max_id_len = max(len(s.ID) for s in sources)
+        max_type_len = max(len(s.SCRAPER_TYPE) for s in sources)
         for s in sources:
             num_snapshots = 0
             num_unchanged_snapshots = 0
@@ -122,8 +123,11 @@ class DataSources:
             num_changed = num_snapshots - num_unchanged_snapshots
             num_changed_p = num_changed / max(num_snapshots, 1) * 100
             num_changed_p = f"{num_changed_p:.2f}%"
-            print(f"{s.ID:{max_id_len}} {num_snapshots:5d} snapshots {num_changed:5d} changes ({num_changed_p:7}) "
-                  f"errors: {num_errors}")
+            print(
+                f"{s.ID:{max_id_len}} {s.SCRAPER_TYPE:{max_type_len}}"
+                f"{num_snapshots:5d} snapshots {num_changed:5d} changes ({num_changed_p:7}) "
+                f"errors: {num_errors}"
+            )
 
 
 class JsonEncoder(json.JSONEncoder):
