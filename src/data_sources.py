@@ -7,6 +7,8 @@ from multiprocessing.pool import Pool
 from pathlib import Path
 from typing import Generator, Optional, List, Type
 
+from tqdm import tqdm
+
 from .sources.base import installed_sources, SourceBase, ScraperError
 
 
@@ -133,15 +135,15 @@ class DataSources:
         data = self.convert_snapshots()
         print(json.dumps(data, indent=2, cls=JsonEncoder))
 
-    def convert_snapshots(self) -> dict:
+    def convert_snapshots(self, with_unchanged: bool = False) -> dict:
         sources = self.sources()
         sources_data = {s.ID: None for s in sources}
-        for s in sources:
-            for dt, snapshot_data in s.iter_snapshot_data():
+        for s in tqdm(sources):
+            for dt, snapshot_data in s.iter_snapshot_data(with_unchanged=with_unchanged):
                 try:
                     data = s.convert_snapshot(snapshot_data)
                 except Exception as e:
-                    print(f"ERROR in {s.ID} @ {dt}")
+                    print(f"\nERROR in {s.ID} @ {dt}")
                     print(snapshot_data)
                     raise
 
@@ -153,7 +155,6 @@ class DataSources:
                 })
 
         return sources_data
-
 
 
 class JsonEncoder(json.JSONEncoder):

@@ -13,6 +13,36 @@ class TevisBaseScraper(SourceBase):
     """
     SCRAPER_TYPE = "tevis"
 
+    @classmethod
+    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+        #print(json.dumps(data["cnc"], indent=2))
+        #exit()
+
+        cal_id_2_name = dict()
+        for c in data["cnc"]:
+            for c_id in c["calendar"].split("|"):
+                cal_id_2_name[c_id] = c.get("name", c_id)
+
+        ret_data = []
+        for cal_id, cals in data["calendar"].items():
+            cal_id = cal_id.split("|")[0]
+            dates = []
+            if not isinstance(cals, list):
+                cals = [cals]
+            for cal in cals:
+                for day, valid in zip(cal["days"], cal["valid"]):
+                    start_date = datetime.datetime.strptime(day, "%Y%m%d")
+                    #start_date = datetime.datetime(int(cal["year"]), int(cal["month"]), int(cal["day"]))
+                    for minutes in valid:
+                        dates.append(start_date + datetime.timedelta(minutes=int(minutes)))
+
+            ret_data.append({
+                "location_id": cal_id,
+                "location_name": cal_id_2_name[cal_id],
+                "dates": dates,
+            })
+        return ret_data
+
     def make_snapshot(self):
         now = self.now()
 
