@@ -59,6 +59,26 @@ class SourceBase:
     def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
         raise NotImplementedError
 
+    @classmethod
+    def compare_snapshot_location(
+            cls,
+            prev_timestamp: datetime.datetime, prev_data: dict,
+            timestamp: datetime.datetime, data: dict
+    ) -> Tuple[set, set]:
+        appointments, cancellations = set(), set()
+
+        sorted_dates = sorted(data["dates"])
+        for d in prev_data["dates"]:
+            if d not in data["dates"] and sorted_dates[0] <= d <= sorted_dates[-1]:
+                appointments.add(d)
+
+        sorted_prev_dates = sorted(prev_data["dates"])
+        for d in data["dates"]:
+            if d not in prev_data["dates"] and sorted_prev_dates[0] <= d <= sorted_prev_dates[-1]:
+                cancellations.add(d)
+
+        return appointments, cancellations
+
     # ---- below are all helpers for derived classes ----
 
     def now(self) -> datetime.datetime:

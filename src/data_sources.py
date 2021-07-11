@@ -151,7 +151,7 @@ class DataSources:
         for s in tqdm(sources):
             for dt, unchanged, snapshot_data in s.iter_snapshot_data(with_unchanged=with_unchanged):
                 try:
-                    data = s.convert_snapshot(snapshot_data)
+                    data = self.convert_snapshot(s, snapshot_data)
                 except Exception as e:
                     print(f"\nERROR in {s.ID} @ {dt}")
                     print(snapshot_data)
@@ -163,7 +163,8 @@ class DataSources:
                 if sources_data[s.ID] is None:
                     sources_data[s.ID] = []
                 sources_data[s.ID].append({
-                    "office_id": s.ID,
+                    "date": dt,
+                    "source_id": s.ID,
                     "snapshot_date": dt,
                     "unchanged": unchanged,
                     "valid": data is not None,
@@ -175,9 +176,8 @@ class DataSources:
     def dump_snapshot_changes(self, with_zeros: bool = False):
         import pandas as pd
         changes = self.get_snapshot_changes(with_zeros=with_zeros)
-        #for row in changes:
-        #    print(row)
         df = pd.DataFrame(changes).set_index("date")
+
         for source_id in sorted(df["source_id"].unique()):
             for loc_id in sorted(df["location_id"].unique()):
                 df2 = df[df["source_id"] == source_id]
@@ -212,23 +212,14 @@ class DataSources:
                     cancellations = set()
 
                     if location["location_id"] in prev_locations:
-                        #if location["location_id"] != "Meldewesen":
-                        #    continue
-                        prev_location = prev_locations[location["location_id"]]
+                        prev_date, prev_location = prev_locations[location["location_id"]]
 
-                        sorted_dates = sorted(location["dates"])
-                        for d in prev_location["dates"]:
-                            if d not in location["dates"] and sorted_dates[0] <= d <= sorted_dates[-1]:
-                                appointments.add(d)
+                        appointments, cancellations = s.compare_snapshot_location(
+                            prev_date, prev_location, dt, location
+                        )
 
-                        sorted_prev_dates = sorted(prev_location["dates"])
-                        for d in location["dates"]:
-                            if d not in prev_location["dates"] and sorted_prev_dates[0] <= d <= sorted_prev_dates[-1]:
-                                cancellations.add(d)
+                    prev_locations[location["location_id"]] = (dt, location)
 
-                    prev_locations[location["location_id"]] = location
-
-                    #print(location["location_id"], ",".join())
                     if idx == 0 or with_zeros or appointments or cancellations:
                         ret_data.append({
                             "source_id": s.ID,
