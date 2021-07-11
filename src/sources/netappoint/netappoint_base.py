@@ -14,6 +14,13 @@ class NetAppointBase(SourceBase):
     NA_COMPANY = None
     NA_EXTRA_PARAMS = None
 
+    NA_ERROR_INVALID_SERVICE = (
+        "Die von Ihnen gewählte Dienstleistungs-Kombination kann nicht an einem Standort bearbeitet werden"
+    )
+    NA_ERROR_NO_SERVICE_SELECTED = (
+        "Bitte geben Sie mindestens 1 Dienstleistung an."
+    )
+
     def full_url(self, url_part: str) -> str:
         return self.BASE_URL.split("/")[0] + "//" + self.BASE_URL.split("/")[2] + url_part
 
@@ -86,7 +93,7 @@ class NetAppointBase(SourceBase):
     def get_na_step_3(self, soup) -> str:
         for li in soup.find_all("li", {"class": "nat_casetypelist_casetype_li"}):
             next_url = li.find("a").get("href")
-            if "step=3&" in next_url:
+            if next_url and "step=3&" in next_url:
                 return self.full_url(next_url)
         raise ValueError(f"step=3 url not found!\nContent: {soup}")
 
@@ -98,6 +105,12 @@ class NetAppointBase(SourceBase):
         if not soup.find("a", {"class": "nat_calendar_weekday_bookable"}):
             # has empty table?
             if soup.find("table", {"class": "nat_calendar"}):
+                return []
+
+            # some service selections lead to error messages
+            text = soup.text
+            if self.NA_ERROR_INVALID_SERVICE in text \
+                    or self.NA_ERROR_NO_SERVICE_SELECTED in text:
                 return []
 
             # otherwise we need to select a location first
