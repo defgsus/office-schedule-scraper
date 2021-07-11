@@ -3,7 +3,8 @@ import hashlib
 import os
 import json
 import datetime
-from typing import Tuple, List, Dict, Type, Optional, Union
+import traceback
+from typing import Tuple, List, Dict, Type, Optional, Union, Generator
 
 import requests
 import bs4
@@ -12,11 +13,22 @@ import bs4
 installed_sources: Dict[str, Type["SourceBase"]] = dict()
 
 
+class ScraperError(Exception):
+    def __init__(self, *args, data: Optional[dict] = None):
+        super().__init__(*args)
+        if not data:
+            data = dict()
+        data["stacktrace"] = traceback.format_exc(limit=3)
+        self.data: dict = data
+
+
 class SourceBase:
 
     CACHE_DIR = Path(__file__).resolve().parent.parent.parent / "cache"
-    VERIFY_CERTIFICATE = True
+    SNAPSHOT_DIR = Path(__file__).resolve().parent.parent.parent / "snapshots"
+    ERROR_DIR = Path(__file__).resolve().parent.parent.parent / "errors"
 
+    VERIFY_CERTIFICATE = True
     ID = None
 
     def __init_subclass__(cls, **kwargs):
@@ -84,8 +96,11 @@ class SourceBase:
         try:
             return json.loads(text)
         except Exception as e:
-            print(f"{type(e).__name__}: {e}\nGot: {text[:1000]}")
-            raise
+            raise ScraperError(
+                f"{type(e).__name__}: {e}", data={
+                    "text": text[:10000]
+                }
+            )
 
     def get_html_soup(self, url, method="GET", data=None, encoding=None):
         text = self.get_url(url, method=method, data=data, encoding=encoding)
@@ -94,3 +109,13 @@ class SourceBase:
 
     def soup(self, html: str):
         return bs4.BeautifulSoup(html, features="html.parser")
+
+    def iter_snapshot_filenames(self) -> Generator[Tuple[datetime.datetime, Path], None, None]:
+        for fn in (self.SNAPSHOT_DIR / self.ID).glob("*/*.json"):
+            dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
+            yield dt, fn
+
+    def iter_error_filenames(self) -> Generator[Tuple[datetime.datetime, Path], None, None]:
+        for fn in (self.ERROR_DIR / self.ID).glob("*/*.json"):
+            dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
+            yield dt, fn

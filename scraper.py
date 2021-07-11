@@ -9,7 +9,7 @@ def parse_args():
 
     parser.add_argument(
         "command", type=str,
-        choices=["list", "snapshot", "dump-snapshot"],
+        choices=["list", "snapshot", "dump-snapshot", "snapshot-status"],
         help="Command to execute",
     )
 
@@ -55,6 +55,9 @@ def main(args):
 
     elif args.command == "dump-snapshot":
         sources.dump_snapshot(num_weeks=args.weeks)
+
+    elif args.command == "snapshot-status":
+        sources.dump_snapshot_status()
 
     else:
         print(f"Invalid command '{args.command}'")

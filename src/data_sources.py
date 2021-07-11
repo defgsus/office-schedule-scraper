@@ -7,13 +7,10 @@ from multiprocessing.pool import Pool
 from pathlib import Path
 from typing import Generator, Optional, List, Type
 
-from .sources.base import installed_sources, SourceBase
+from .sources.base import installed_sources, SourceBase, ScraperError
 
 
 class DataSources:
-
-    SNAPSHOT_DIR = Path(__file__).resolve().parent.parent / "snapshots"
-    ERROR_DIR = Path(__file__).resolve().parent.parent / "errors"
 
     def __init__(
             self,
@@ -73,6 +70,8 @@ class DataSources:
                 "message": str(e),
                 "stacktrace": traceback.format_exc(limit=3),
             }
+            if hasattr(e, "data") and isinstance(e.data, dict):
+                data.update(e.data)
             error = True
 
         self._store_snapshot(s, data, error)
@@ -80,7 +79,7 @@ class DataSources:
     def _store_snapshot(self, s: SourceBase, data: dict, error: bool = False):
         now = datetime.datetime.now()
 
-        snapshot_dir = (self.SNAPSHOT_DIR if not error else self.ERROR_DIR) / s.ID / now.strftime("%Y-%m")
+        snapshot_dir = (SourceBase.SNAPSHOT_DIR if not error else SourceBase.ERROR_DIR) / s.ID / now.strftime("%Y-%m")
         os.makedirs(snapshot_dir, exist_ok=True)
 
         # save some disk space
@@ -105,6 +104,26 @@ class DataSources:
         file = files[-1]
         with open(str(file)) as fp:
             return data == json.load(fp)
+
+    def dump_snapshot_status(self):
+        sources = self.sources()
+        max_id_len = max(len(s.ID) for s in sources)
+        for s in sources:
+            num_snapshots = 0
+            num_unchanged_snapshots = 0
+            num_errors = len(list(s.iter_error_filenames()))
+
+            for dt, fn in s.iter_snapshot_filenames():
+                num_snapshots += 1
+                unchanged = "-unchanged.json" in str(fn)
+                if unchanged:
+                    num_unchanged_snapshots += 1
+
+            num_changed = num_snapshots - num_unchanged_snapshots
+            num_changed_p = num_changed / max(num_snapshots, 1) * 100
+            num_changed_p = f"{num_changed_p:.2f}%"
+            print(f"{s.ID:{max_id_len}} {num_snapshots:5d} snapshots {num_changed:5d} changes ({num_changed_p:7}) "
+                  f"errors: {num_errors}")
 
 
 class JsonEncoder(json.JSONEncoder):
