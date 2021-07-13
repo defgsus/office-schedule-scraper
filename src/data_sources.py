@@ -173,7 +173,7 @@ class DataSources:
 
         return sources_data
 
-    def dump_snapshot_changes(self, with_zeros: bool = False, resample: Optional[str] = None):
+    def dump_snapshot_changes(self, with_zeros: bool = True, resample: Optional[str] = None):
         import pandas as pd
         changes = self.get_snapshot_changes(with_zeros=with_zeros)
         df = pd.DataFrame(changes).set_index("date")
@@ -189,7 +189,7 @@ class DataSources:
                         "appointments": df2["appointments"],
                         "cancellations": df2["cancellations"],
                     }).set_index("date")
-                if not df2.empty:
+                if df2.shape[0] > 1:
                     print(df2.to_string(max_rows=max(1, df.shape[0])))
                     print()
 
@@ -254,6 +254,53 @@ class DataSources:
         for row in data:
             row["office_id"] = f"{s.ID}-{row['location_id']}"
         return data
+
+    def dump_changes_status(self):
+        import pandas as pd
+        changes = (
+            pd.DataFrame(self.get_snapshot_changes())
+            .set_index("source_id")#, "location_id"])
+            .groupby("source_id")
+            .sum()
+            .to_dict()
+        )
+
+        rows = []
+        for s in self.sources():
+            num_snapshots = 0
+            num_unchanged_snapshots = 0
+            num_errors = len(list(s.iter_error_filenames()))
+
+            min_date = None
+            max_date = None
+            for dt, fn in s.iter_snapshot_filenames():
+                if min_date is None:
+                    min_date = max_date = dt
+                max_date = max(max_date, dt)
+                num_snapshots += 1
+                unchanged = "-unchanged.json" in str(fn)
+                if unchanged:
+                    num_unchanged_snapshots += 1
+
+            num_changed = num_snapshots - num_unchanged_snapshots
+            num_changed_p = round(num_changed / max(num_snapshots, 1) * 100, 2)
+
+            rows.append({
+                "source_id": s.ID,
+                "scraper": s.SCRAPER_TYPE,
+                "snapshots": num_snapshots,
+                "unchanged": num_unchanged_snapshots,
+                "changed %": num_changed_p,
+                "errors": num_errors,
+                "appointments": changes["appointments"].get(s.ID, 0),
+                "cancellations": changes["cancellations"].get(s.ID, 0),
+                "first snapshot": min_date,
+                "last snapshot": max_date,
+            })
+
+        df = pd.DataFrame(rows)
+        print(df.to_string(max_rows=df.shape[0]))#, max_cols=df.shape[1]))
+        print(df.to_markdown())
 
 
 class JsonEncoder(json.JSONEncoder):
