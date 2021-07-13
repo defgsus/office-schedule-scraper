@@ -113,7 +113,4 @@ The scraped interfaces:
 - https://www.leipzig.de/fachanwendungen/termine/index.html
 
   Using another system (probably) by dmk-ebusiness.de
-  
-- https://netappoint.de/hh/hamburg/?company=hamburg
-  
-  Does not work currently
+ 

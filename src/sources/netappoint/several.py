@@ -27,7 +27,7 @@ class DresdenKfz(NetAppointBase):
     NA_COMPANY = "stadtdresden-kfz"
 
 
-# TODO: Not working yet
+# TODO: no appointments during pandemic...
 #class Hamburg(NetAppointBase):
 #    ID = "hamburg"
 #    BASE_URL = "https://netappoint.de/hh/hamburg"
