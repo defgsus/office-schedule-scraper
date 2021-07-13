@@ -114,7 +114,6 @@ The scraped interfaces:
 
   Using another system (probably) by dmk-ebusiness.de
   
-- https://service.magdeburg.de/netappoint/index.php?company=magdeburg
+- https://netappoint.de/hh/hamburg/?company=hamburg
   
-  The netappoint configuration is somewhat complex or broken or both. It's
-  already hard to get an appoint as a human, let alone as a python script.
+  Does not work currently
