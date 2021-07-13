@@ -37,6 +37,7 @@ class SourceBase:
     SCRAPER_TYPE = "custom"
     VERIFY_CERTIFICATE = True
     ID = None
+    BASE_URL = None
 
     def __init_subclass__(cls, **kwargs):
         if "Base" not in cls.__name__:

@@ -36,6 +36,18 @@ class DataSources:
         self.source_classes.sort(key=lambda s: s.ID)
 
     def dump_list(self):
+        import pandas as pd
+        rows = []
+        for i, s in enumerate(self.source_classes):
+            rows.append({
+                "index": i+1,
+                "source_id": s.ID,
+                "scraper": s.SCRAPER_TYPE,
+                "url": s.BASE_URL,
+            })
+        df = pd.DataFrame(rows).set_index("index")
+        print(df.to_markdown())
+        return
         max_id_len = max(len(s.ID) for s in self.source_classes)
         max_type_len = max(len(s.SCRAPER_TYPE) for s in self.source_classes)
         for i, s in enumerate(self.source_classes):

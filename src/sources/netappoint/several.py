@@ -27,6 +27,13 @@ class DresdenKfz(NetAppointBase):
     NA_COMPANY = "stadtdresden-kfz"
 
 
+# TODO: Not working yet
+#class Hamburg(NetAppointBase):
+#    ID = "hamburg"
+#    BASE_URL = "https://netappoint.de/hh/hamburg"
+#    NA_COMPANY = "hamburg"
+
+
 class KaiserslauternAusl(NetAppointBase):
     ID = "kaiserslauternausl"
     BASE_URL = "https://www3.kaiserslautern.de/netappoint"
