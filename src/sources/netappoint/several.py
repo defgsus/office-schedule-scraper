@@ -27,6 +27,12 @@ class DresdenKfz(NetAppointBase):
     NA_COMPANY = "stadtdresden-kfz"
 
 
+class Halle(NetAppointBase):
+    ID = "halle"
+    BASE_URL = "https://ncu.halle.de"
+    NA_COMPANY = "stadthalle"
+
+
 # TODO: no appointments during pandemic...
 #class Hamburg(NetAppointBase):
 #    ID = "hamburg"
