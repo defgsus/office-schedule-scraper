@@ -7,8 +7,6 @@ from multiprocessing.pool import Pool
 from pathlib import Path
 from typing import Generator, Optional, List, Type, Union
 
-from tqdm import tqdm
-
 from .sources.base import installed_sources, SourceBase, ScraperError
 
 
@@ -177,6 +175,8 @@ class DataSources:
             with_unchanged: bool = False,
             with_invalid: bool = False,
     ) -> dict:
+        from tqdm import tqdm
+
         sources = self.sources()
         sources_data = {s.ID: None for s in sources}
         for s in tqdm(sources):
@@ -226,6 +226,8 @@ class DataSources:
                     print()
 
     def get_snapshot_changes(self, days_ahead: int = 0, with_zeros: bool = False):
+        from tqdm import tqdm
+
         sources = self.sources()
         working_data = {}
         ret_data = []
