@@ -97,10 +97,130 @@ Here's a list of websites that are scraped (via `python scraper.py list`):
 |      35 | weimar              | tevis      | https://tevis.weimar.de                                           |
 |      36 | weiterstadt         | tevis      | https://tevis.ekom21.de/wdt                                       |
 
-The scraped interfaces:
+The scraped interfaces which are used by most websites:
 
-- tevis: [https://www.kommunix.de/...](https://www.kommunix.de/produkte/tevis/)
-- netappoint: [www.edv-kahlert.de/...](http://www.edv-kahlert.de/produkte/Netcallup/netalarmpro1.htm)
+- **tevis**: https://www.kommunix.de/produkte/tevis/
+- **netappoint**: http://www.edv-kahlert.de/produkte/Netcallup/netalarmpro1.htm
+  
+  (Note that the website url requires a `company` query-parameter to work)
+
+
+### Data details
+
+At each **snapshot** all **available dates** are recorded for each listed 
+office department. The **tevis** system shows the available dates for
+the next **N** full weeks, where **N** is set to **8** in my recording job.
+The **netappoint** system usually shows the next **28 days** and not more.
+ 
+Here's an example for one day from the 
+[website of **Bonn**](https://onlinetermine.bonn.de/index.php?company=stadtbonn):
+
+|                     | *Führerscheinwesen* | *Kfz-Zulassungswesen* | *Meldewesen* |
+|:--------------------|:--------------------|:----------------------|:-------------|
+| 2021-08-10T07:45:00 |                     | X                     |              |
+| 2021-08-10T07:50:00 |                     | X                     |              |
+| 2021-08-10T07:55:00 | X                   | X                     |              |
+| 2021-08-10T08:00:00 | X                   | X                     |              |
+| 2021-08-10T08:05:00 | X                   | X                     |              |
+| 2021-08-10T08:10:00 | X                   | X                     |              |
+| 2021-08-10T08:15:00 | X                   | X                     |              |
+| 2021-08-10T08:20:00 | X                   | X                     |              |
+| 2021-08-10T08:25:00 | X                   | X                     |              |
+| 2021-08-10T08:30:00 | X                   | X                     |              |
+| 2021-08-10T08:35:00 | X                   | X                     |              |
+| 2021-08-10T08:40:00 | X                   | X                     |              |
+| 2021-08-10T08:45:00 | X                   | X                     |              |
+| 2021-08-10T08:50:00 | X                   | X                     |              |
+| 2021-08-10T08:55:00 | X                   | X                     |              |
+| 2021-08-10T09:00:00 |                     | X                     |              |
+| 2021-08-10T09:05:00 |                     | X                     |              |
+| 2021-08-10T09:10:00 |                     | X                     |              |
+| 2021-08-10T09:15:00 | X                   | X                     |              |
+| 2021-08-10T09:20:00 | X                   | X                     |              |
+| 2021-08-10T09:25:00 | X                   | X                     |              |
+| 2021-08-10T09:30:00 | X                   | X                     |              |
+| 2021-08-10T09:35:00 | X                   | X                     |              |
+| 2021-08-10T09:40:00 | X                   | X                     |              |
+| 2021-08-10T09:45:00 | X                   | X                     |              |
+| 2021-08-10T09:50:00 | X                   | X                     |              |
+| 2021-08-10T09:55:00 | X                   | X                     |              |
+| 2021-08-10T10:00:00 |                     | X                     |              |
+| 2021-08-10T10:05:00 |                     | X                     |              |
+| 2021-08-10T10:10:00 |                     | X                     |              |
+| 2021-08-10T10:15:00 |                     | X                     |              |
+| 2021-08-10T10:20:00 | X                   | X                     |              |
+| 2021-08-10T10:25:00 | X                   | X                     |              |
+| 2021-08-10T10:30:00 |                     | X                     |              |
+| 2021-08-10T10:35:00 |                     | X                     |              |
+| 2021-08-10T10:40:00 |                     | X                     |              |
+| 2021-08-10T10:45:00 |                     | X                     |              |
+| 2021-08-10T10:50:00 | X                   | X                     |              |
+| 2021-08-10T10:55:00 | X                   | X                     |              |
+| 2021-08-10T11:00:00 |                     | X                     |              |
+| 2021-08-10T11:05:00 |                     | X                     |              |
+| 2021-08-10T11:10:00 | X                   | X                     |              |
+| 2021-08-10T11:15:00 | X                   | X                     |              |
+| 2021-08-10T11:20:00 | X                   | X                     |              |
+| 2021-08-10T11:25:00 | X                   | X                     |              |
+| 2021-08-10T11:30:00 | X                   | X                     |              |
+| 2021-08-10T11:35:00 | X                   | X                     |              |
+| 2021-08-10T11:40:00 | X                   | X                     |              |
+| 2021-08-10T11:45:00 | X                   | X                     |              |
+| 2021-08-10T11:50:00 | X                   | X                     |              |
+| 2021-08-10T11:55:00 | X                   | X                     |              |
+| 2021-08-10T12:00:00 |                     | X                     |              |
+| 2021-08-10T12:05:00 |                     | X                     |              |
+| 2021-08-10T12:10:00 |                     | X                     |              |
+| 2021-08-10T12:15:00 | X                   | X                     |              |
+| 2021-08-10T12:20:00 | X                   | X                     |              |
+| 2021-08-10T12:25:00 |                     | X                     |              |
+| 2021-08-10T12:30:00 | X                   |                       |              |
+| 2021-08-10T12:35:00 | X                   |                       |              |
+| 2021-08-10T12:40:00 | X                   |                       |              |
+
+Obviously they offer 5 minute slots. By looking at more data one can see
+that *Meldewesen* and *Führerscheinwesen* exchange availability between weeks. 
+
+It's not possible for all websites/systems to gather the actual business
+hours for each day so a single snapshot is not necessarily enough to
+calculate the correct number of appointments for each day. 
+
+However, when comparing
+two successive snapshots, it's possible to count new appointments or 
+cancellations quite robustly and then attach a timestamp of when the 
+appointments where made, clicked or activated or however this is called.
+
+Still, there seem to be some erratic updates which mess up the calculation
+and some offices seem to only update the availability every couple of days. 
+From first inspection of the recorded data there is actually not much going on 
+at all except for a few cities or districts. Quite sure, this is due to the
+pandemic and the *german corps spirit* of bureaucracy in general. 
+
+Below's a week of extracted data for all netappoint/tevis interfaces
+resampled to a 1 hour interval. Offices with strange peaks where
+excluded.  
+
+![timeline through one week](/docs/one-week-all.png)
+
+Blue line is number of appointments
+and red line is cancellations.
+
+One custom appointment interface of special interest is the 
+[Impf-Terminvergabe Thüringen](https://www.impfen-thueringen.de/terminvergabe/index.php),
+the website to make covid vaccination appointments in Thuringia.
+They only offer one timeslot per day for at most 3 different days.
+
+To approximate the number of appointments made per hour,
+a snapshot is recorded every minute. Whenever a new snapshot
+offers a timeslot that is **after** the previously offered timeslot,
+the previous timeslot is counted as one appointment.
+
+![timeline through one week for vaccination](/docs/one-week-vacc.png) 
+
+These are probably not real appointments but rather 
+a measure of website activity as the total number of appointments made
+would be over 190,000 in a period of 10 days. That does not really
+fit the perceived reality.
 
 
 ### TODO-list of websites i found
