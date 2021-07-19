@@ -10,7 +10,8 @@ def parse_args():
     parser.add_argument(
         "command", type=str,
         choices=[
-            "list", "snapshot", "dump-snapshot",
+            "list",
+            "snapshot", "dump-snapshot", "dump-snapshot-table",
             "snapshot-status", "changes-status",
             "dump-convert", "dump-changes",
             "debug"
@@ -65,6 +66,9 @@ def main(args):
 
     elif args.command == "dump-snapshot":
         sources.dump_snapshot(num_weeks=args.weeks)
+
+    elif args.command == "dump-snapshot-table":
+        sources.dump_snapshot_table(num_weeks=args.weeks)
 
     elif args.command == "snapshot-status":
         sources.dump_snapshot_status()

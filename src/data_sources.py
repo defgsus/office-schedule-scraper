@@ -65,6 +65,25 @@ class DataSources:
             print(f"---------- {s.ID} ----------")
             print(json.dumps(data, indent=2))
 
+    def dump_snapshot_table(self, num_weeks: int = 4):
+        import pandas as pd
+        import numpy as np
+        dic = dict()
+        all_dates = set()
+        for s in self.sources(num_weeks=num_weeks):
+            data = s.make_snapshot()
+            data = s.convert_snapshot(data)
+            for loc in data:
+                for d in loc["dates"]:
+                    if d not in dic:
+                        dic[d] = dict()
+                    dic[d][loc["location_name"]] = "X"
+        df = (
+            pd.DataFrame(dic).transpose().sort_index()
+            .replace({np.nan: ""})
+        )
+        print(df.to_markdown())
+
     def make_snapshot(self, num_weeks: int = 4, processes: int = 1):
         sources = self.sources(num_weeks=num_weeks)
 
