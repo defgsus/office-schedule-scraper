@@ -43,7 +43,7 @@ class DataSources:
                 "index": i+1,
                 "source_id": s.ID,
                 "scraper": s.SCRAPER_TYPE,
-                "url": s.BASE_URL,
+                "url": s.index_url(),
             })
         df = pd.DataFrame(rows).set_index("index")
         print(df.to_markdown())

@@ -58,44 +58,45 @@ of a way to unify the scraped data..
 
 Here's a list of websites that are scraped (via `python scraper.py list`):
 
-|   index | source_id           | scraper    | url                                                               |
-|--------:|:--------------------|:-----------|:------------------------------------------------------------------|
-|       1 | bonn                | netappoint | https://onlinetermine.bonn.de                                     |
-|       2 | bonnbau             | netappoint | https://onlinetermine.bonn.de                                     |
-|       3 | dresden             | netappoint | https://termine.dresden.de/netappoint                             |
-|       4 | dresdenkfz          | netappoint | https://termine.dresden.de/netappoint                             |
-|       5 | egelsbach           | tevis      | https://tevis.ekom21.de/egb                                       |
-|       6 | frankfurt           | tevis      | https://tevis.ekom21.de/fra                                       |
-|       7 | friedrichsdorf      | tevis      | https://tevis.ekom21.de/frf                                       |
-|       8 | grossumstadt        | tevis      | https://tevis.ekom21.de/gad                                       |
-|       9 | heidelberg          | tevis      | https://tevis-online.heidelberg.de                                |
-|      10 | hornberg            | tevis      | https://tevis.ekom21.de/hbe                                       |
-|      11 | huenstetten         | tevis      | https://tevis.ekom21.de/hsz                                       |
-|      12 | huettenberg         | tevis      | https://tevis.ekom21.de/htb                                       |
-|      13 | ilmkreis            | tevis      | https://tvweb.ilm-kreis.de/ilmkreis                               |
-|      14 | impfthueringen      | custom     | https://www.impfen-thueringen.de/terminvergabe                    |
-|      15 | jena                | tevis      | https://tevis-bs.jena.de                                          |
-|      16 | kaiserslauternausl  | netappoint | https://www3.kaiserslautern.de/netappoint                         |
-|      17 | kassel              | tevis      | https://tevis.ekom21.de/kas                                       |
-|      18 | kelsterbach         | tevis      | https://tevis.ekom21.de/keb                                       |
-|      19 | kreisbergstrasse    | netappoint | https://terminreservierungverkehr.kreis-bergstrasse.de/netappoint |
-|      20 | kreisgermersheimkfz | netappoint | https://kfz.kreis-germersheim.de/netappoint                       |
-|      21 | kreisgrossgerau     | tevis      | https://tevis.ekom21.de/grg                                       |
-|      22 | kreiswesel          | tevis      | https://tevis.krzn.de/tevisweb080                                 |
-|      23 | leipzigstandesamt   | netappoint | https://adressen.leipzig.de/netappoint                            |
-|      24 | leun                | tevis      | https://tevis.ekom21.de/lnx                                       |
-|      25 | linsengericht       | tevis      | https://tevis.ekom21.de/lsg                                       |
-|      26 | magdeburg           | netappoint | https://service.magdeburg.de/netappoint                           |
-|      27 | moerlenbach         | tevis      | https://tevis.ekom21.de/mah                                       |
-|      28 | neuisenburg         | tevis      | https://tevis.ekom21.de/nis                                       |
-|      29 | niedenstein         | tevis      | https://tevis.ekom21.de/nsn                                       |
-|      30 | nordhausen          | tevis      | https://tevis.svndh.de                                            |
-|      31 | oberramstadt        | tevis      | https://tevis.ekom21.de/oby                                       |
-|      32 | offenbach           | tevis      | https://tevis.ekom21.de/off                                       |
-|      33 | pfungstadt          | tevis      | https://tevis.ekom21.de/pft                                       |
-|      34 | viernheim           | tevis      | https://tevis.ekom21.de/vhx                                       |
-|      35 | weimar              | tevis      | https://tevis.weimar.de                                           |
-|      36 | weiterstadt         | tevis      | https://tevis.ekom21.de/wdt                                       |
+|   index | source_id           | scraper    | url                                                                                             |
+|--------:|:--------------------|:-----------|:------------------------------------------------------------------------------------------------|
+|       1 | bonn                | netappoint | https://onlinetermine.bonn.de/index.php?company=stadtbonn                                       |
+|       2 | bonnbau             | netappoint | https://onlinetermine.bonn.de/index.php?company=stadtbonn-bau                                   |
+|       3 | dresden             | netappoint | https://termine.dresden.de/netappoint/index.php?company=stadtdresden-fs                         |
+|       4 | dresdenkfz          | netappoint | https://termine.dresden.de/netappoint/index.php?company=stadtdresden-kfz                        |
+|       5 | egelsbach           | tevis      | https://tevis.ekom21.de/egb                                                                     |
+|       6 | frankfurt           | tevis      | https://tevis.ekom21.de/fra                                                                     |
+|       7 | friedrichsdorf      | tevis      | https://tevis.ekom21.de/frf                                                                     |
+|       8 | grossumstadt        | tevis      | https://tevis.ekom21.de/gad                                                                     |
+|       9 | halle               | netappoint | https://ncu.halle.de/index.php?company=stadthalle                                               |
+|      10 | heidelberg          | tevis      | https://tevis-online.heidelberg.de                                                              |
+|      11 | hornberg            | tevis      | https://tevis.ekom21.de/hbe                                                                     |
+|      12 | huenstetten         | tevis      | https://tevis.ekom21.de/hsz                                                                     |
+|      13 | huettenberg         | tevis      | https://tevis.ekom21.de/htb                                                                     |
+|      14 | ilmkreis            | tevis      | https://tvweb.ilm-kreis.de/ilmkreis                                                             |
+|      15 | impfthueringen      | custom     | https://www.impfen-thueringen.de/terminvergabe                                                  |
+|      16 | jena                | tevis      | https://tevis-bs.jena.de                                                                        |
+|      17 | kaiserslauternausl  | netappoint | https://www3.kaiserslautern.de/netappoint/index.php?company=kaiserslautern-ausl                 |
+|      18 | kassel              | tevis      | https://tevis.ekom21.de/kas                                                                     |
+|      19 | kelsterbach         | tevis      | https://tevis.ekom21.de/keb                                                                     |
+|      20 | kreisbergstrasse    | netappoint | https://terminreservierungverkehr.kreis-bergstrasse.de/netappoint/index.php?company=bergstrasse |
+|      21 | kreisgermersheimkfz | netappoint | https://kfz.kreis-germersheim.de/netappoint/index.php?company=kreis-germersheim                 |
+|      22 | kreisgrossgerau     | tevis      | https://tevis.ekom21.de/grg                                                                     |
+|      23 | kreiswesel          | tevis      | https://tevis.krzn.de/tevisweb080                                                               |
+|      24 | leipzigstandesamt   | netappoint | https://adressen.leipzig.de/netappoint/index.php?company=leipzig-standesamt                     |
+|      25 | leun                | tevis      | https://tevis.ekom21.de/lnx                                                                     |
+|      26 | linsengericht       | tevis      | https://tevis.ekom21.de/lsg                                                                     |
+|      27 | magdeburg           | netappoint | https://service.magdeburg.de/netappoint/index.php?company=magdeburg                             |
+|      28 | moerlenbach         | tevis      | https://tevis.ekom21.de/mah                                                                     |
+|      29 | neuisenburg         | tevis      | https://tevis.ekom21.de/nis                                                                     |
+|      30 | niedenstein         | tevis      | https://tevis.ekom21.de/nsn                                                                     |
+|      31 | nordhausen          | tevis      | https://tevis.svndh.de                                                                          |
+|      32 | oberramstadt        | tevis      | https://tevis.ekom21.de/oby                                                                     |
+|      33 | offenbach           | tevis      | https://tevis.ekom21.de/off                                                                     |
+|      34 | pfungstadt          | tevis      | https://tevis.ekom21.de/pft                                                                     |
+|      35 | viernheim           | tevis      | https://tevis.ekom21.de/vhx                                                                     |
+|      36 | weimar              | tevis      | https://tevis.weimar.de                                                                         |
+|      37 | weiterstadt         | tevis      | https://tevis.ekom21.de/wdt                                                                     |
 
 The scraped interfaces which are used by most websites:
 

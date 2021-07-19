@@ -57,6 +57,10 @@ class SourceBase:
         raise NotImplementedError
 
     @classmethod
+    def index_url(cls) -> str:
+        return cls.BASE_URL
+
+    @classmethod
     def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
         raise NotImplementedError
 

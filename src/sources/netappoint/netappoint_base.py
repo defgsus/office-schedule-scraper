@@ -24,6 +24,10 @@ class NetAppointBase(SourceBase):
     )
 
     @classmethod
+    def index_url(cls) -> str:
+        return f"{cls.BASE_URL}/index.php?company={cls.NA_COMPANY}"
+
+    @classmethod
     def convert_snapshot(cls, data: Union[dict, list]) -> Optional[List[dict]]:
         ret_data = []
         for row in data:
@@ -78,7 +82,7 @@ class NetAppointBase(SourceBase):
         return ret_data
 
     def get_na_cases(self) -> Tuple[dict, str]:
-        url = f"{self.BASE_URL}/index.php?company={self.NA_COMPANY}"
+        url = self.index_url()
         if self.NA_EXTRA_PARAMS:
             url += "&" + "&".join(self.NA_EXTRA_PARAMS)
         soup = self.get_html_soup(url)
