@@ -200,6 +200,7 @@ class DataSources:
                         "date": df2.index, "source_id": source_id, "location_id": loc_id,
                         "appointments": df2["appointments"],
                         "cancellations": df2["cancellations"],
+                        "changed": df2["changed"],
                     }).set_index("date")
                 if df2.shape[0] > 1:
                     print(df2.to_string(max_rows=max(1, df.shape[0])))
@@ -232,6 +233,7 @@ class DataSources:
 
                     appointments = set()
                     cancellations = set()
+                    has_changed = False
 
                     if loc_id in prev_locations:
                         if loc_id not in working_data:
@@ -239,13 +241,13 @@ class DataSources:
 
                         prev_date, prev_location = prev_locations[loc_id]
 
-                        appointments, cancellations = s.compare_snapshot_location(
+                        appointments, cancellations, has_changed = s.compare_snapshot_location(
                             prev_date, prev_location, dt, location, working_data[loc_id],
                         )
 
                     prev_locations[loc_id] = (dt, location)
 
-                    if idx == 0 or with_zeros or appointments or cancellations:
+                    if idx == 0 or with_zeros or appointments or cancellations or has_changed:
                         ret_data.append({
                             "source_id": s.ID,
                             "location_id": location["location_id"],
@@ -253,6 +255,7 @@ class DataSources:
                             "free_dates": len(location["dates"]),
                             "appointments": len(appointments),
                             "cancellations": len(cancellations),
+                            "changed": 1 if has_changed else 0,
                             #"appointments_s": str(appointments),
                             "min_free": sorted(location['dates'])[0],
                             "max_free": sorted(location['dates'])[-1],

@@ -35,7 +35,7 @@ class ImpfThueringen(SourceBase):
             prev_timestamp: datetime.datetime, prev_data: dict,
             timestamp: datetime.datetime, data: dict,
             working_data: dict,
-    ) -> Tuple[set, set]:
+    ) -> Tuple[set, set, bool]:
         appointments = set()
         cancellations = set()
         bookings = working_data
@@ -52,7 +52,7 @@ class ImpfThueringen(SourceBase):
                 appointments.add(pd)
                 bookings[pd] = "booked"
 
-        return appointments, cancellations
+        return appointments, cancellations, prev_data != data
 
     @classmethod
     def compare_snapshot_location_NAIVE(

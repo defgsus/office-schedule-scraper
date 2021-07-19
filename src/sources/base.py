@@ -66,8 +66,11 @@ class SourceBase:
             prev_timestamp: datetime.datetime, prev_data: dict,
             timestamp: datetime.datetime, data: dict,
             working_data: dict,
-    ) -> Tuple[set, set]:
+    ) -> Tuple[set, set, bool]:
         appointments, cancellations = set(), set()
+
+        #df = get_calendar_table(data["dates"])
+        #print(df)
 
         sorted_dates = sorted(data["dates"])
         for d in prev_data["dates"]:
@@ -79,7 +82,12 @@ class SourceBase:
             if d not in prev_data["dates"] and sorted_prev_dates[0] <= d <= sorted_prev_dates[-1]:
                 cancellations.add(d)
 
-        return appointments, cancellations
+        if sorted_dates == sorted_prev_dates:
+            changed = False
+        else:
+            sorted_dates = [d for d in sorted_dates if d >= prev_timestamp]
+            changed = sorted_dates != sorted_prev_dates
+        return appointments, cancellations, changed
 
     # ---- below are all helpers for derived classes ----
 
@@ -196,3 +204,28 @@ class SourceBase:
         for fn in (self.ERROR_DIR / self.ID).glob("*/*.json"):
             dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
             yield dt, fn
+
+
+def get_calendar_table(dates: List[str]):
+    import numpy as np
+    import pandas as pd
+    dates_dic = {}
+    times = set()
+    for d in sorted(dates):
+        if isinstance(d, datetime.datetime):
+            d = d.isoformat()
+        date = d[:10]
+        time = d[11:16]
+        if date not in dates_dic:
+            dates_dic[date] = {}
+        dates_dic[date][time] = 1
+        times.add(time)
+
+    df = (
+        pd.DataFrame(dates_dic)
+        .rename({0: "date"})
+        .replace(np.nan, 0)
+        #.set_index(0)
+        .sort_index()
+    )
+    return df
