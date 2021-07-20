@@ -134,7 +134,13 @@ class SourceBase:
         for try_num in range(3):
             try:
                 print("downloading", url)
-                response = self.session.request(method, url, data=data, timeout=10, verify=self.VERIFY_CERTIFICATE)
+                kwargs = dict(timeout=10, verify=self.VERIFY_CERTIFICATE)
+                if data:
+                    if method == "GET":
+                        kwargs["params"] = data
+                    else:
+                        kwargs["data"] = data
+                response = self.session.request(method, url, **kwargs)
                 if encoding is None:
                     text = response.text
                 else:
