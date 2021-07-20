@@ -342,7 +342,7 @@ class DataSources:
 class JsonEncoder(json.JSONEncoder):
 
     def default(self, o):
-        if isinstance(o, datetime.datetime):
+        if isinstance(o, (datetime.datetime, datetime.date)):
             return o.isoformat()
         try:
             return super().default(o)

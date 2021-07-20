@@ -27,27 +27,113 @@ class Leipzig(SourceBase):
     ID = "leipzig"
     BASE_URL = "https://tnv.leipzig.de/tnv"
 
-    REQUEST_DELAY = 1
+    #REQUEST_DELAY = .1
 
     @classmethod
     def index_url(cls) -> str:
         return "https://leipzig.de/fachanwendungen/termine/index.html"
 
-    def make_snapshot(self):
-        locations = self.get_locations()
+    def make_snapshot(self) -> List[dict]:
+        session = EkolSession(self)
+        session.start()  # go to office selection
 
+        locations = session.get_locations()
+
+        ret_data = []
         for loc in locations:
-            self.new_session()
-            print("\n\n----------\n", loc)
-            loc.update(self.get_location_dates(loc.pop("button_name")))
-            print(loc)
+            session.select_location(loc)
+            session.select_concern()
 
-        return locations
+            days = session.get_free_days()
+            loc.pop("button_name")
+            loc["days"] = days
 
-    def get_locations(self) -> List:
-        soup = self._get_location_soup()
+            ret_data.append(loc)
+
+            while session.page() != session.PAGE_OFFICE_SELECT:
+                session.step_back()
+
+        return ret_data
+
+
+class EkolSession:
+    """
+    Scraper utility for the "eKOL Terminverwaltung by Telecomputer GmbH"
+    """
+    PAGE_INFO_PAGE = "INFOPAGE"
+    PAGE_OFFICE_SELECT = "OFFICESELECT"
+    PAGE_CONCERN_SELECT = "CONCERNSELECT"
+    PAGE_CONCERN_COMMENTS = "CONCERNCOMMENTS"
+    PAGE_CALENDAR_SELECT = "CALENDARSELECT"
+
+    def __init__(self, scraper: SourceBase):
+        self.scraper = scraper
+        self.soup = None
+
+    def title(self) -> str:
+        return self.soup.find("h2", {"class": "ekolStepBox2"}).text.strip()
+
+    def page(self) -> str:
+        title = self.title()
+        if title == "Allgemeine Informationen":
+            return self.PAGE_INFO_PAGE
+        elif title == "Termin vereinbaren bei":
+            return self.PAGE_OFFICE_SELECT
+        elif title == "Auswahl des Anliegens":
+            return self.PAGE_CONCERN_SELECT
+        elif title == "Zusatzinformationen zu den Anliegen":
+            return self.PAGE_CONCERN_COMMENTS
+        elif title == "Auswahl des Termins":
+            return self.PAGE_CALENDAR_SELECT
+        else:
+            return "UNKNOWN"
+
+    def start(self):
+        """
+        Starts a new jsession with the server and navigates to the locations page
+        """
+        self.soup = self.scraper.get_html_soup(self.scraper.BASE_URL)
+
+        # -- accept data protection --
+        self.submit({
+            "AGREEMENT_ACCEPT":	"on",
+            "AGREEMENT_REQUIRED": "true",
+            "ACTION_INFOPAGE_NEXT":	"",
+        })
+
+    def step_back(self):
+        page = self.page()
+        self.submit({f"ACTION_{page}_PREVIOUS": ""})
+
+    def step_forward(self):
+        page = self.page()
+        self.submit({f"ACTION_{page}_NEXT": ""})
+
+    def submit(self, params: dict):
+        """
+        Submit the current form with all hidden fields and the given params.
+        Load new self.soup
+        """
+        form = self.soup.find("form")
+        action_url = form.get("action")
+        query = {
+            i.get("name"): i.get("value")
+            for i in form.find_all("input", {"type": "hidden"})
+        }
+        query.update({
+            "SELECTED_LANGUAGE": "de",
+        })
+        query.update(params)
+
+        self.soup = self.scraper.get_html_soup(
+            f"{self.scraper.BASE_URL}/{action_url}", method="POST", data=query
+        )
+
+    def get_locations(self):
+        assert self.page() == self.PAGE_OFFICE_SELECT
+
         locations = []
-        for div in soup.find_all("div", {"class": "CLASS_TREEVIEWSEARCH_HEAD_LEVEL_2"}):
+        for div in self.soup.find_all("div", {"class": "CLASS_TREEVIEWSEARCH_HEAD_LEVEL_2"}):
             button = div.find("button")
             loc = {
                 "name": button.text.strip(),
@@ -59,148 +145,92 @@ class Leipzig(SourceBase):
 
         return locations
 
-    def get_location_dates(self, button_name: str) -> dict:
-        soup = self._get_location_soup()
+    def select_location(self, location: dict):
+        """
+        Select one specific location and navigate to concern-select.
 
-        # -- open the location --
-        form = soup.find("form")
-        action_url = form.get("action")
-        query = {
-            i.get("name"): i.get("value")
-            for i in form.find_all("input", {"type": "hidden"})
-        }
-        query.update({
-            "SELECTED_LANGUAGE": "de",
-            button_name: "Öffnen",
+        :param location: one single dict from get_locations()
+        """
+        assert self.page() == self.PAGE_OFFICE_SELECT, f"Got {self.page()}"
+
+        # -- open location panel --
+
+        self.submit({
+            location["button_name"]: "Öffnen",
             "OFFICESELECT_TERMID": "",
             "OFFICESELECT_RESERVATIONPIN": "",
         })
 
-        soup = self.get_html_soup(f"{self.BASE_URL}/{action_url}", method="POST", data=query)
-        print("\n3", soup.find("h2", {"class": "ekolStepBox2"}))
+        # -- click the appointment button --
 
-        return self._book_location(soup)
+        button = None
+        for but in self.soup.find_all("button", {"class": "class_BuergerAuswahlDienststelle_office-button"}):
+            if location["id"] in but.get("name"):
+                button = but
+                break
 
-    def _get_location_soup(self):
-        """Will start a new jsession with the server and navigate to the locations page"""
-        soup = self.get_html_soup(self.BASE_URL)
-        print("\n1", soup.find("h2", {"class": "ekolStepBox2"}))
-
-        # -- accept data protection --
-
-        form = soup.find("form")
-        action_url = form.get("action")
-        query = {
-            i.get("name"): i.get("value")
-            for i in form.find_all("input", {"type": "hidden"})
-        }
-        query.update({
-            "SELECTED_LANGUAGE": "de",
-            "AGREEMENT_ACCEPT":	"on",
-            "AGREEMENT_REQUIRED": "true",
-            "ACTION_INFOPAGE_NEXT":	"",
-        })
-
-        soup = self.get_html_soup(
-            f"{self.BASE_URL}/{action_url}", method="POST", data=query
-        )
-        print("\n2", soup.find("h2", {"class": "ekolStepBox2"}))
-        return soup
-
-    def _book_location(self, soup) -> dict:
-
-        # click the appointment button
-        button = soup.find("button", {"class": "class_BuergerAuswahlDienststelle_office-button"})
-        if not button:
-            print(soup)
-            exit(1)
-        assert button.text.strip() == "Termin vereinbaren"
-
-        form = soup.find("form")
-        action_url = form.get("action")
-        query = {
-            i.get("name"): i.get("value")
-            for i in form.find_all("input", {"type": "hidden"})
-        }
-        query.update({
-            "SELECTED_LANGUAGE": "de",
-        })
-        query[button.get("name")] = ""
-        query.update({
+        self.submit({
+            button.get("name"): "",
             "OFFICESELECT_TERMID": "",
             "OFFICESELECT_RESERVATIONPIN": "",
         })
+        assert self.page() == self.PAGE_CONCERN_SELECT, f"Got {self.page()}"
 
-        soup = self.get_html_soup(f"{self.BASE_URL}/{action_url}", method="POST", data=query)
-
-        return self._get_location_dates(soup)
-
-    def _get_location_dates(self, soup) -> dict:
-        # "Auswahl des Anliegens"
-        print("\n4", soup.find("h2", {"class": "ekolStepBox2"}))
-
-        form = soup.find("form")
-        action_url = form.get("action")
-        query = {
-            i.get("name"): i.get("value")
-            for i in form.find_all("input", {"type": "hidden"})
-        }
+    def select_concern(self):
+        """
+        Select the first concern and navigate to calendar selection
+        """
+        assert self.page() == self.PAGE_CONCERN_SELECT, f"Got {self.page()}"
 
         # select first service
-        services = dict()
-        for td in soup.find_all("td", {"class": "CLASS_METADATAGRIDENTRY_VALUECONTAINER"}):
+        params = dict()
+        for td in self.soup.find_all("td", {"class": "CLASS_METADATAGRIDENTRY_VALUECONTAINER"}):
             select = td.find("select")
             if select:
-                services[select.get("name")] = "1" if not services else "0"
+                params[select.get("name")] = "1" if not params else "0"
 
-        if not services:
-            print("NO SERVICES FOUND")
-            return {}
+        params["ACTION_CONCERNSELECT_NEXT"] = ""
+        self.submit(params)
 
-        query.update(services)
-        query.update({
-            "SELECTED_LANGUAGE": "de",
-            "ACTION_CONCERNSELECT_NEXT": "",
-        })
+        assert self.page() in (self.PAGE_CONCERN_COMMENTS, self.PAGE_CALENDAR_SELECT), f"Got {self.page()}"
+        if self.page() == self.PAGE_CONCERN_COMMENTS:
+            self.step_forward()
 
-        prev_action_url = f"{self.BASE_URL}/{action_url}"
-        soup = self.get_html_soup(prev_action_url, method="POST", data=query)
-        print("\n5", soup.find("h2", {"class": "ekolStepBox2"}))
+        assert self.page() == self.PAGE_CALENDAR_SELECT, f"Got {self.page()}"
 
-        # click "Weiter"
-        form = soup.find("form")
-        action_url = form.get("action")
-        query = {
-            i.get("name"): i.get("value")
-            for i in form.find_all("input", {"type": "hidden"})
-        }
-        query.update({
-            "SELECTED_LANGUAGE": "de",
-            "ACTION_CONCERNCOMMENTS_NEXT": "",
-        })
-
-        soup = self.get_html_soup(
-            f"{self.BASE_URL}/{action_url}",
-            method="POST",
-            data=query,
-        )
-        # "Auswahl des Termins"
-        print("\n6", soup.find("h2", {"class": "ekolStepBox2"}))
+    def get_free_days(self):
+        assert self.page() == self.PAGE_CALENDAR_SELECT, f"Got {self.page()}"
 
         days = []
 
-        for table in soup.find_all("table", {"class": "ekolCalendarMonthTable"}):
+        for table in self.soup.find_all("table", {"class": "ekolCalendarMonthTable"}):
             month = table.find("caption").text.strip()
             month, year = MONTH_MAPPING[month.split()[0]], int(month.split()[1])
             for td in table.find_all("td", {"class": "eKOLCalendarCellInRange"}):
                 day = int(td.find("div", {"class": "ekolCalendarDayNumberInRange"}).text)
                 num_free = int(td.find("div", {"class": "ekolCalendarFreeTimeContainer"}).text.split()[0])
+                if num_free:
+                    days.append({
+                        "date": datetime.date(year, month, day),
+                        "num_free": num_free,
+                    })
 
-                days.append({
-                    "date": datetime.date(year, month, day),
-                    "num_free": num_free,
-                })
+                    # -- click day --
+                    button = td.find("div", {"class": "ekolCalendarDayNumberInRange"}).parent
+                    self.submit({button.get("name"): ""})
 
-        return {
-            "days": days
-        }
+                    # -- read times --
+
+                    select = self.soup.find("select", {"name": "ekolCalendarTimeSelect"})
+                    days[-1]["times"] = [
+                        o.text.strip()
+                        for o in select.find_all("option")
+                        if o.get("value")
+                    ]
+
+                    # -- close popup --
+
+                    button = self.soup.find("button", {"class": "messagebox_buttonclose"})
+                    self.submit({button.get("name"): ""})
+
+        return days
