@@ -234,4 +234,19 @@ fit the perceived reality.
 - https://www.leipzig.de/fachanwendungen/termine/index.html
 
   Using another system (probably) by dmk-ebusiness.de
- 
+
+- https://sean.outsystemsenterprise.com/TicketSystemOnlineTermine/
+
+- https://service.berlin.de/terminvereinbarung/
+
+  Started scraper [berlin.py](src/sources/berlin.py) but they 
+  protected themselves with throttling and captchas.
+  
+- https://www.etermin.net/stadtolfen and supposedly 27000 
+  other schedules - fully [APIfied](https://www.etermin.net/online-terminplaner-api)
+  
+- https://www.radiologie-mannheim.de/online-terminvereinbarung/ is 
+  using [termed.de](https://www.termed.de/) which is also 
+  fully APIfied
+  
+- https://scheduler.mobimed.at/kinemedic/
