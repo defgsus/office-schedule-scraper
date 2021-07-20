@@ -19,6 +19,12 @@ MONTH_MAPPING = {
 
 
 class Berlin(SourceBase):
+    """
+    Started Berlin scraper just to find that they have
+    a couple of protections including captchas.
+
+    So this is not finished and not imported by __init__.py
+    """
     ID = "berlin"
 
     BASE_URL = "https://service.berlin.de"

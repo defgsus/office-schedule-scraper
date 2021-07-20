@@ -6,6 +6,7 @@ import datetime
 import traceback
 import unicodedata
 import re
+import time
 from copy import deepcopy
 from typing import Tuple, List, Dict, Type, Optional, Union, Generator
 
@@ -36,6 +37,8 @@ class SourceBase:
 
     SCRAPER_TYPE = "custom"
     VERIFY_CERTIFICATE = True
+    REQUEST_DELAY = 0
+
     ID = None
     BASE_URL = None
 
@@ -49,9 +52,7 @@ class SourceBase:
         self.use_cache = use_cache
         self.num_weeks = num_weeks
 
-        self.session.headers = {
-            "User-Agent": "Mozilla/5.0 Gecko/20100101 Firefox/74.0"
-        }
+        self.new_session()
 
     def make_snapshot(self):
         raise NotImplementedError
@@ -98,6 +99,14 @@ class SourceBase:
     def now(self) -> datetime.datetime:
         return datetime.datetime.now()
 
+    def new_session(self):
+        if self.session:
+            self.session.close()
+        self.session = requests.Session()
+        self.session.headers = {
+            "User-Agent": "Mozilla/5.0 Gecko/20100101 Firefox/84.0"
+        }
+
     @classmethod
     def to_id(cls, name: str) -> str:
         name = str(name).lower()
@@ -114,32 +123,45 @@ class SourceBase:
     def get_cache_dir(self) -> Path:
         return self.CACHE_DIR / self.ID
 
-    def get_cache_filename(self, x, data: Optional[Union[str, dict]] = None) -> Path:
+    def get_cache_filename(
+            self,
+            x,
+            data: Optional[Union[str, dict]] = None,
+            headers: Optional[dict] = None
+    ) -> Path:
         x = str(x)
         if data:
             if isinstance(data, str):
                 x += data
             else:
                 x += json.dumps(data)
+        if headers:
+            x += json.dumps(headers)
         hash = hashlib.md5(x.encode("utf-8")).hexdigest()
         return self.get_cache_dir() / hash
 
-    def get_url(self, url, method="GET", data=None, encoding=None) -> str:
+    def get_url(self, url, method="GET", data=None, headers: Optional[dict] = None, encoding=None) -> str:
         if self.use_cache:
-            cache_filename = self.get_cache_filename(url, data)
+            cache_filename = self.get_cache_filename(url, data, headers)
             if cache_filename.exists():
                 with open(str(cache_filename)) as fp:
                     return fp.read()
 
         for try_num in range(3):
             try:
-                print("downloading", url)
-                kwargs = dict(timeout=10, verify=self.VERIFY_CERTIFICATE)
+                print("downloading", url, data)
+                kwargs = dict(
+                    timeout=10,
+                    verify=self.VERIFY_CERTIFICATE,
+                    headers=headers,
+                )
                 if data:
                     if method == "GET":
                         kwargs["params"] = data
                     else:
                         kwargs["data"] = data
+                if self.REQUEST_DELAY:
+                    time.sleep(self.REQUEST_DELAY)
                 response = self.session.request(method, url, **kwargs)
                 if encoding is None:
                     text = response.text
@@ -177,8 +199,8 @@ class SourceBase:
             msg = text
         return msg[:10000]
 
-    def get_html_soup(self, url, method="GET", data=None, encoding=None):
-        text = self.get_url(url, method=method, data=data, encoding=encoding)
+    def get_html_soup(self, url, method="GET", data=None, headers: Optional[dict] = None, encoding=None):
+        text = self.get_url(url, method=method, data=data, headers=headers, encoding=encoding)
         soup = self.soup(text)
         return soup
 
