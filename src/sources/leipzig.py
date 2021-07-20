@@ -55,6 +55,23 @@ class Leipzig(SourceBase):
 
         return ret_data
 
+    @classmethod
+    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+        ret_data = []
+        for loc in data:
+            dates = []
+            for day in loc["days"]:
+                for ti in day["times"]:
+                    dates.append(datetime.datetime.strptime(
+                        day["date"] + ti, "%Y-%m-%d%H:%M"
+                    ))
+            ret_data.append({
+                "location_id": loc["id"],
+                "location_name": loc["name"],
+                "dates": dates,
+            })
+        return ret_data
+
 
 class EkolSession:
     """
