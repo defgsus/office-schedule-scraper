@@ -7,6 +7,8 @@
 
 """
 
+import requests
+
 
 RESULTS = [
     {
@@ -760,7 +762,7 @@ HAND_PICKED = [
     ("oesterreichgk", "Österreichische Gesundheitskasse", "OEGK"),
     ("saluburggbr", "Gesundheitsberuferegister Arbeiterkammer Salzburg", "gbr"),
     ("hsktest", "Hochsauerlandkreis", "hsk-schnelltest"),
-    ("hahnenklee", "Testzentrum Hahnenklee", "testzentrumhahnenklee"),
+    ("hahnenkleetest", "Testzentrum Hahnenklee", "testzentrumhahnenklee"),
     ("coesfeld", "Stadt Coesfeld", "coe"),
     ("oberasbach", "Stadt Oberasbach", "stadtoberasbach"),
     ("asbtest", "Corona Testcenter", "ASBTestcenter"),
@@ -779,3 +781,29 @@ HAND_PICKED = [
     ("stahnsdorf", "Gemeinde Stahnsdorf", "stahnsdorf"),
     ("elitheratest", "Corona TESTZENTRUM im Elithera", "testzentrum1"),
 ]
+
+
+for source_id, name, url_part in HAND_PICKED:
+    response = requests.get(
+        f"https://www.etermin.net/api/settingbs?t=",
+        headers={
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:90.0) Gecko/20100101 Firefox/90.0",
+            #"Accept": "application/json, text/plain",
+            #"Accept-Language": "en-US,en;q=0.5",
+            #"Accept-Encoding": "gzip, deflate, br",
+            #"Pragma": "no-cache",
+            #"Connection": "keep-alive",
+            #"Content-Type": "application/json",
+            "Referer": f"https://www.etermin.net/{url_part}",
+            "Host": "www.etermin.net",
+            #"Cache-Control": "no-cache",
+            #"Sec-Fetch-Dest": "empty",
+            #"Sec-Fetch-Mode": "cors",
+            #"Sec-Fetch-Site": "same-origin",
+            #"TE": "trailers",
+            "webid": url_part.lower(),
+        }
+    )
+    print("\n", source_id, url_part, name)
+    print(response.content)
+    break

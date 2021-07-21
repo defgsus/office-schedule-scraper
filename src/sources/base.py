@@ -181,11 +181,12 @@ class SourceBase:
 
         return text
 
-    def get_json(self, url, method="GET", data=None, encoding=None) -> dict:
-        text = self.get_url(url, method, data, encoding)
+    def get_json(self, url, method="GET", data=None, headers=None, encoding=None) -> dict:
+        text = self.get_url(url, method, data=data, encoding=encoding, headers=headers)
         try:
             return json.loads(text)
         except Exception as e:
+            print(text[:1000])
             raise ScraperError(
                 f"{type(e).__name__}: {e}", data={
                     "text": self._get_html_error_text(text)
