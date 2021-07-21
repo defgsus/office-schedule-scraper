@@ -38,6 +38,8 @@ class SourceBase:
     SCRAPER_TYPE = "custom"
     VERIFY_CERTIFICATE = True
     REQUEST_DELAY = 0
+    # provide a name to exclude from parallel processing
+    MULTI_PROCESS_GROUP: Optional[str] = None
 
     ID = None
     BASE_URL = None

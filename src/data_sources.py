@@ -89,25 +89,37 @@ class DataSources:
             for s in sources:
                 self._make_and_store_snapshot(s)
         else:
+            source_groups = dict()
+            for s in sources:
+                if not s.MULTI_PROCESS_GROUP:
+                    source_groups[s.ID] = [s]
+                else:
+                    source_groups.setdefault(s.MULTI_PROCESS_GROUP, [])
+                    source_groups[s.MULTI_PROCESS_GROUP].append(s)
+            
             pool = Pool(processes)
-            pool.map(self._make_and_store_snapshot, sources)
+            pool.map(self._make_and_store_snapshot, list(source_groups.values()))
 
-    def _make_and_store_snapshot(self, s: SourceBase):
-        error = False
-        try:
-            data = s.make_snapshot()
-        except Exception as e:
-            print(f"ERROR: {type(e).__name__}: {e}")
-            data = {
-                "class": type(e).__name__,
-                "message": str(e),
-                "stacktrace": traceback.format_exc(limit=3),
-            }
-            if hasattr(e, "data") and isinstance(e.data, dict):
-                data.update(e.data)
-            error = True
+    def _make_and_store_snapshot(self, sources: Union[SourceBase, List[SourceBase]]):
+        if not isinstance(sources, list):
+            sources = [sources]
 
-        self._store_snapshot(s, data, error)
+        for s in sources:
+            error = False
+            try:
+                data = s.make_snapshot()
+            except Exception as e:
+                print(f"ERROR: {type(e).__name__}: {e}")
+                data = {
+                    "class": type(e).__name__,
+                    "message": str(e),
+                    "stacktrace": traceback.format_exc(limit=3),
+                }
+                if hasattr(e, "data") and isinstance(e.data, dict):
+                    data.update(e.data)
+                error = True
+
+            self._store_snapshot(s, data, error)
 
     def _store_snapshot(self, s: SourceBase, data: dict, error: bool = False):
         now = datetime.datetime.now()
