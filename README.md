@@ -44,8 +44,9 @@ source env/bin/activate
 pip install -r requirements.txt
 
 # make a snapshot
+python scraper.py snapshot -w <X> -p <Y>
 # where <X> is the number of weeks to look ahead (defaults to 4)
-python scraper.py snapshot -w <X>
+# where <Y> is the number of parallel processes to run
 ```
 
 Which leads to a lot of JSON files in the `snapshot` directory. 
@@ -56,75 +57,74 @@ of a way to unify the scraped data..
 
 ### List of implemented websites
 
-Here's a list of websites that are scraped (via `python scraper.py list`):
+Here's a list of websites that are scraped (compiled via `python scraper.py list`):
 
-|   index | source_id           | scraper    | url                                                                                             |
-|--------:|:--------------------|:-----------|:------------------------------------------------------------------------------------------------|
-|       1 | amberg              | tevis      | https://termine.amberg.de/                                                                      |
-|       2 | badkreuznach        | tevis      | https://termine-reservieren.de/termine/svkh/                                                    |
-|       3 | bernkastelwittlich  | tevis      | https://termine-reservieren.de/termine/bernkastel-wittlich                                      |
-|       4 | bonn                | netappoint | https://onlinetermine.bonn.de/index.php?company=stadtbonn                                       |
-|       5 | bonnbau             | netappoint | https://onlinetermine.bonn.de/index.php?company=stadtbonn-bau                                   |
-|       6 | cochemzell          | tevis      | https://termine-reservieren.de/termine/cochem-zell                                              |
-|       7 | dresden             | netappoint | https://termine.dresden.de/netappoint/index.php?company=stadtdresden-fs                         |
-|       8 | dresdenkfz          | netappoint | https://termine.dresden.de/netappoint/index.php?company=stadtdresden-kfz                        |
-|       9 | egelsbach           | tevis      | https://tevis.ekom21.de/egb                                                                     |
-|      10 | eislingen           | tevis      | https://termine-reservieren.de/termine/eislingen                                                |
-|      11 | frankenthal         | tevis      | https://termine-reservieren.de/termine/frankenthal                                              |
-|      12 | frankfurt           | tevis      | https://tevis.ekom21.de/fra                                                                     |
-|      13 | friedrichsdorf      | tevis      | https://tevis.ekom21.de/frf                                                                     |
-|      14 | gronau              | tevis      | https://termine-reservieren.de/termine/gronau                                                   |
-|      15 | grossumstadt        | tevis      | https://tevis.ekom21.de/gad                                                                     |
-|      16 | halle               | netappoint | https://ncu.halle.de/index.php?company=stadthalle                                               |
-|      17 | heidelberg          | tevis      | https://tevis-online.heidelberg.de                                                              |
-|      18 | hof                 | tevis      | https://termine-reservieren.de/termine/hof                                                      |
-|      19 | hornberg            | tevis      | https://tevis.ekom21.de/hbe                                                                     |
-|      20 | huenstetten         | tevis      | https://tevis.ekom21.de/hsz                                                                     |
-|      21 | huettenberg         | tevis      | https://tevis.ekom21.de/htb                                                                     |
-|      22 | ilmkreis            | tevis      | https://tvweb.ilm-kreis.de/ilmkreis                                                             |
-|      23 | impfthueringen      | custom     | https://www.impfen-thueringen.de/terminvergabe                                                  |
-|      24 | ingelheim           | tevis      | https://termine-reservieren.de/termine/ingelheim                                                |
-|      25 | jena                | tevis      | https://tevis-bs.jena.de                                                                        |
-|      26 | kaiserslauternausl  | netappoint | https://www3.kaiserslautern.de/netappoint/index.php?company=kaiserslautern-ausl                 |
-|      27 | kassel              | tevis      | https://tevis.ekom21.de/kas                                                                     |
-|      28 | kelsterbach         | tevis      | https://tevis.ekom21.de/keb                                                                     |
-|      29 | kreisbergstrasse    | netappoint | https://terminreservierungverkehr.kreis-bergstrasse.de/netappoint/index.php?company=bergstrasse |
-|      30 | kreisgermersheimkfz | netappoint | https://kfz.kreis-germersheim.de/netappoint/index.php?company=kreis-germersheim                 |
-|      31 | kreisgrossgerau     | tevis      | https://tevis.ekom21.de/grg                                                                     |
-|      32 | kreiswesel          | tevis      | https://tevis.krzn.de/tevisweb080                                                               |
-|      33 | kvmayenkoblenz      | tevis      | https://termine-reservieren.de/termine/kvmayen-koblenz                                          |
-|      34 | leipzig             | custom     | https://leipzig.de/fachanwendungen/termine/index.html                                           |
-|      35 | leipzigstandesamt   | netappoint | https://adressen.leipzig.de/netappoint/index.php?company=leipzig-standesamt                     |
-|      36 | leun                | tevis      | https://tevis.ekom21.de/lnx                                                                     |
-|      37 | linsengericht       | tevis      | https://tevis.ekom21.de/lsg                                                                     |
-|      38 | loehne              | tevis      | https://termine-reservieren.de/termine/loehne                                                   |
-|      39 | lramiesbach         | tevis      | https://termine-reservieren.de/termine/lra-miesbach                                             |
-|      40 | lramuenchenefa      | tevis      | https://termine-reservieren.de/termine/lramuenchen/efa                                          |
-|      41 | magdeburg           | netappoint | https://service.magdeburg.de/netappoint/index.php?company=magdeburg                             |
-|      42 | mainz               | tevis      | https://otv.mainz.de/                                                                           |
-|      43 | minden              | tevis      | https://termine-reservieren.de/termine/minden                                                   |
-|      44 | moerlenbach         | tevis      | https://tevis.ekom21.de/mah                                                                     |
-|      45 | neuisenburg         | tevis      | https://tevis.ekom21.de/nis                                                                     |
-|      46 | niedenstein         | tevis      | https://tevis.ekom21.de/nsn                                                                     |
-|      47 | nordhausen          | tevis      | https://tevis.svndh.de                                                                          |
-|      48 | oberramstadt        | tevis      | https://tevis.ekom21.de/oby                                                                     |
-|      49 | offenbach           | tevis      | https://tevis.ekom21.de/off                                                                     |
-|      50 | paderborn           | tevis      | https://termine-reservieren.de/termine/paderborn                                                |
-|      51 | pfungstadt          | tevis      | https://tevis.ekom21.de/pft                                                                     |
-|      52 | salzgitter          | tevis      | https://termine-reservieren.de/termine/salzgitter                                               |
-|      53 | schoenebeckelbe     | tevis      | https://termine-reservieren.de/termine/schoenebeck-elbe                                         |
-|      54 | speyer              | tevis      | https://termine-reservieren.de/termine/speyer                                                   |
-|      55 | stadtsoest          | tevis      | https://termine-reservieren.de/termine/stadtsoest                                               |
-|      56 | steinburg           | tevis      | https://termine-reservieren.de/termine/steinburg                                                |
-|      57 | trier               | tevis      | https://termine-reservieren.de/termine/trier                                                    |
-|      58 | unna                | tevis      | https://termine-reservieren.de/termine/unna                                                     |
-|      59 | viernheim           | tevis      | https://tevis.ekom21.de/vhx                                                                     |
-|      60 | weilheimschongau    | tevis      | https://termine-reservieren.de/termine/weilheimschongau                                         |
-|      61 | weimar              | tevis      | https://tevis.weimar.de                                                                         |
-|      62 | weiterstadt         | tevis      | https://tevis.ekom21.de/wdt                                                                     |
-|      63 | westerwaldkreis     | tevis      | https://termine-reservieren.de/termine/westerwaldkreis                                          |
-|      64 | wittmund            | tevis      | https://termine-reservieren.de/termine/wittmund/stva                                            |
-|      65 | worms               | tevis      | https://termine-reservieren.de/termine/worms                                                    |
+|   index | source_id           | scraper    | url                                                                                                                                                              |
+|--------:|:--------------------|:-----------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|       1 | amberg              | tevis      | [termine.amberg.de/](https://termine.amberg.de/)                                                                                                                 |
+|       2 | badkreuznach        | tevis      | [termine-reservieren.de/termine/svkh/](https://termine-reservieren.de/termine/svkh/)                                                                             |
+|       3 | bernkastelwittlich  | tevis      | [termine-reservieren.de/termine/bernkastel-wittlich/](https://termine-reservieren.de/termine/bernkastel-wittlich/)                                               |
+|       4 | bonn                | netappoint | [onlinetermine.bonn.de/...](https://onlinetermine.bonn.de/index.php?company=stadtbonn)                                                                           |
+|       5 | bonnbau             | netappoint | [onlinetermine.bonn.de/...](https://onlinetermine.bonn.de/index.php?company=stadtbonn-bau)                                                                       |
+|       6 | cochemzell          | tevis      | [termine-reservieren.de/termine/cochem-zell/](https://termine-reservieren.de/termine/cochem-zell/)                                                               |
+|       7 | dresden             | netappoint | [termine.dresden.de/netappoint/...](https://termine.dresden.de/netappoint/index.php?company=stadtdresden-fs)                                                     |
+|       8 | dresdenkfz          | netappoint | [termine.dresden.de/netappoint/...](https://termine.dresden.de/netappoint/index.php?company=stadtdresden-kfz)                                                    |
+|       9 | egelsbach           | tevis      | [tevis.ekom21.de/egb/](https://tevis.ekom21.de/egb/)                                                                                                             |
+|      10 | eislingen           | tevis      | [termine-reservieren.de/termine/eislingen/](https://termine-reservieren.de/termine/eislingen/)                                                                   |
+|      11 | frankenthal         | tevis      | [termine-reservieren.de/termine/frankenthal/](https://termine-reservieren.de/termine/frankenthal/)                                                               |
+|      12 | frankfurt           | tevis      | [tevis.ekom21.de/fra/](https://tevis.ekom21.de/fra/)                                                                                                             |
+|      13 | friedrichsdorf      | tevis      | [tevis.ekom21.de/frf/](https://tevis.ekom21.de/frf/)                                                                                                             |
+|      14 | gronau              | tevis      | [termine-reservieren.de/termine/gronau/](https://termine-reservieren.de/termine/gronau/)                                                                         |
+|      15 | grossumstadt        | tevis      | [tevis.ekom21.de/gad/](https://tevis.ekom21.de/gad/)                                                                                                             |
+|      16 | halle               | netappoint | [ncu.halle.de/...](https://ncu.halle.de/index.php?company=stadthalle)                                                                                            |
+|      17 | heidelberg          | tevis      | [tevis-online.heidelberg.de/](https://tevis-online.heidelberg.de/)                                                                                               |
+|      18 | hof                 | tevis      | [termine-reservieren.de/termine/hof/](https://termine-reservieren.de/termine/hof/)                                                                               |
+|      19 | hornberg            | tevis      | [tevis.ekom21.de/hbe/](https://tevis.ekom21.de/hbe/)                                                                                                             |
+|      20 | huenstetten         | tevis      | [tevis.ekom21.de/hsz/](https://tevis.ekom21.de/hsz/)                                                                                                             |
+|      21 | huettenberg         | tevis      | [tevis.ekom21.de/htb/](https://tevis.ekom21.de/htb/)                                                                                                             |
+|      22 | ilmkreis            | tevis      | [tvweb.ilm-kreis.de/ilmkreis/](https://tvweb.ilm-kreis.de/ilmkreis/)                                                                                             |
+|      23 | impfthueringen      | custom     | [www.impfen-thueringen.de/terminvergabe/](https://www.impfen-thueringen.de/terminvergabe/)                                                                       |
+|      24 | ingelheim           | tevis      | [termine-reservieren.de/termine/ingelheim/](https://termine-reservieren.de/termine/ingelheim/)                                                                   |
+|      25 | jena                | tevis      | [tevis-bs.jena.de/](https://tevis-bs.jena.de/)                                                                                                                   |
+|      26 | kaiserslauternausl  | netappoint | [www3.kaiserslautern.de/netappoint/...](https://www3.kaiserslautern.de/netappoint/index.php?company=kaiserslautern-ausl)                                         |
+|      27 | kassel              | tevis      | [tevis.ekom21.de/kas/](https://tevis.ekom21.de/kas/)                                                                                                             |
+|      28 | kelsterbach         | tevis      | [tevis.ekom21.de/keb/](https://tevis.ekom21.de/keb/)                                                                                                             |
+|      29 | kreisbergstrasse    | netappoint | [terminreservierungverkehr.kreis-bergstrasse.de/netappoint/...](https://terminreservierungverkehr.kreis-bergstrasse.de/netappoint/index.php?company=bergstrasse) |
+|      30 | kreisgermersheimkfz | netappoint | [kfz.kreis-germersheim.de/netappoint/...](https://kfz.kreis-germersheim.de/netappoint/index.php?company=kreis-germersheim)                                       |
+|      31 | kreisgrossgerau     | tevis      | [tevis.ekom21.de/grg/](https://tevis.ekom21.de/grg/)                                                                                                             |
+|      32 | kreiswesel          | tevis      | [tevis.krzn.de/tevisweb080/](https://tevis.krzn.de/tevisweb080/)                                                                                                 |
+|      33 | kvmayenkoblenz      | tevis      | [termine-reservieren.de/termine/kvmayen-koblenz/](https://termine-reservieren.de/termine/kvmayen-koblenz/)                                                       |
+|      34 | leipzig             | custom     | [leipzig.de/fachanwendungen/termine/...](https://leipzig.de/fachanwendungen/termine/index.html)                                                                  |
+|      35 | leipzigstandesamt   | netappoint | [adressen.leipzig.de/netappoint/...](https://adressen.leipzig.de/netappoint/index.php?company=leipzig-standesamt)                                                |
+|      36 | leun                | tevis      | [tevis.ekom21.de/lnx/](https://tevis.ekom21.de/lnx/)                                                                                                             |
+|      37 | linsengericht       | tevis      | [tevis.ekom21.de/lsg/](https://tevis.ekom21.de/lsg/)                                                                                                             |
+|      38 | loehne              | tevis      | [termine-reservieren.de/termine/loehne/](https://termine-reservieren.de/termine/loehne/)                                                                         |
+|      39 | lramiesbach         | tevis      | [termine-reservieren.de/termine/lra-miesbach/](https://termine-reservieren.de/termine/lra-miesbach/)                                                             |
+|      40 | lramuenchenefa      | tevis      | [termine-reservieren.de/termine/lramuenchen/efa/](https://termine-reservieren.de/termine/lramuenchen/efa/)                                                       |
+|      41 | magdeburg           | netappoint | [service.magdeburg.de/netappoint/...](https://service.magdeburg.de/netappoint/index.php?company=magdeburg)                                                       |
+|      42 | mainz               | tevis      | [otv.mainz.de/](https://otv.mainz.de/)                                                                                                                           |
+|      43 | minden              | tevis      | [termine-reservieren.de/termine/minden/](https://termine-reservieren.de/termine/minden/)                                                                         |
+|      44 | moerlenbach         | tevis      | [tevis.ekom21.de/mah/](https://tevis.ekom21.de/mah/)                                                                                                             |
+|      45 | neuisenburg         | tevis      | [tevis.ekom21.de/nis/](https://tevis.ekom21.de/nis/)                                                                                                             |
+|      46 | niedenstein         | tevis      | [tevis.ekom21.de/nsn/](https://tevis.ekom21.de/nsn/)                                                                                                             |
+|      47 | nordhausen          | tevis      | [tevis.svndh.de/](https://tevis.svndh.de/)                                                                                                                       |
+|      48 | oberramstadt        | tevis      | [tevis.ekom21.de/oby/](https://tevis.ekom21.de/oby/)                                                                                                             |
+|      49 | offenbach           | tevis      | [tevis.ekom21.de/off/](https://tevis.ekom21.de/off/)                                                                                                             |
+|      50 | paderborn           | tevis      | [termine-reservieren.de/termine/paderborn/](https://termine-reservieren.de/termine/paderborn/)                                                                   |
+|      51 | pfungstadt          | tevis      | [tevis.ekom21.de/pft/](https://tevis.ekom21.de/pft/)                                                                                                             |
+|      52 | salzgitter          | tevis      | [termine-reservieren.de/termine/salzgitter/](https://termine-reservieren.de/termine/salzgitter/)                                                                 |
+|      53 | schoenebeckelbe     | tevis      | [termine-reservieren.de/termine/schoenebeck-elbe/](https://termine-reservieren.de/termine/schoenebeck-elbe/)                                                     |
+|      54 | speyer              | tevis      | [termine-reservieren.de/termine/speyer/](https://termine-reservieren.de/termine/speyer/)                                                                         |
+|      55 | stadtsoest          | tevis      | [termine-reservieren.de/termine/stadtsoest/](https://termine-reservieren.de/termine/stadtsoest/)                                                                 |
+|      56 | steinburg           | tevis      | [termine-reservieren.de/termine/steinburg/](https://termine-reservieren.de/termine/steinburg/)                                                                   |
+|      57 | trier               | tevis      | [termine-reservieren.de/termine/trier/](https://termine-reservieren.de/termine/trier/)                                                                           |
+|      58 | unna                | tevis      | [termine-reservieren.de/termine/unna/](https://termine-reservieren.de/termine/unna/)                                                                             |
+|      59 | viernheim           | tevis      | [tevis.ekom21.de/vhx/](https://tevis.ekom21.de/vhx/)                                                                                                             |
+|      60 | weilheimschongau    | tevis      | [termine-reservieren.de/termine/weilheimschongau/](https://termine-reservieren.de/termine/weilheimschongau/)                                                     |
+|      61 | weimar              | tevis      | [tevis.weimar.de/](https://tevis.weimar.de/)                                                                                                                     |
+|      62 | weiterstadt         | tevis      | [tevis.ekom21.de/wdt/](https://tevis.ekom21.de/wdt/)                                                                                                             |
+|      63 | wittmund            | tevis      | [termine-reservieren.de/termine/wittmund/stva/](https://termine-reservieren.de/termine/wittmund/stva/)                                                           |
+|      64 | worms               | tevis      | [termine-reservieren.de/termine/worms/](https://termine-reservieren.de/termine/worms/)                                                                           |
 
 The scraped interfaces which are used by most websites:
 
@@ -207,7 +207,8 @@ Here's an example for one day from the
 | 2021-08-10T12:35:00 | X                   |                       |              |
 | 2021-08-10T12:40:00 | X                   |                       |              |
 
-Obviously they offer 5 minute slots. By looking at more data one can see
+Obviously they offer 5 minute slots and, yes, german offices might
+close quite early. By looking at more data one can see
 that *Meldewesen* and *Führerscheinwesen* exchange availability between weeks. 
 
 It's not possible for all websites/systems to gather the actual business

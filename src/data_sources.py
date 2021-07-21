@@ -37,19 +37,29 @@ class DataSources:
         import pandas as pd
         rows = []
         for i, s in enumerate(self.source_classes):
+            url = s.index_url()
+            url_split = url.split("/")
+            final_part = url_split[-1]
+            if len(url_split) > 3 and "." in final_part or "?" in final_part:
+                short_url = url[:-len(final_part)] + "..."
+            else:
+                if not url.endswith("/"):
+                    url += "/"
+                short_url = url
+
+            if short_url.startswith("http://"):
+                short_url = short_url[7:]
+            elif short_url.startswith("https://"):
+                short_url = short_url[8:]
+
             rows.append({
                 "index": i+1,
                 "source_id": s.ID,
                 "scraper": s.SCRAPER_TYPE,
-                "url": s.index_url(),
+                "url": f"[{short_url}]({url})",
             })
         df = pd.DataFrame(rows).set_index("index")
         print(df.to_markdown())
-        return
-        max_id_len = max(len(s.ID) for s in self.source_classes)
-        max_type_len = max(len(s.SCRAPER_TYPE) for s in self.source_classes)
-        for i, s in enumerate(self.source_classes):
-            print(f"{i+1:3} {s.SCRAPER_TYPE:{max_type_len}} {s.ID:{max_id_len}}")
 
     def sources(self, num_weeks: int = 4):
         return [
