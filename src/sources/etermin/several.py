@@ -31,6 +31,7 @@ HAND_PICKED = [
     ("kreissteinfurt", "Kreis Steinfurt", "kreis-steinfurt"),
     ("lehrte", "Stadt Lehrte", "StadtLehrte"),
     ("mittenwalde", "Stadt Mittenwalde", "StadtMittenwalde"),
+    ("olfen", "Stadt Olfen", "stadtolfen"),
     ("oberasbach", "Stadt Oberasbach", "stadtoberasbach"),
     ("oesterreichgk", "Österreichische Gesundheitskasse", "OEGK"),
     ("saluburggbr", "Gesundheitsberuferegister Arbeiterkammer Salzburg", "gbr"),

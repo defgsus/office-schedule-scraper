@@ -178,7 +178,7 @@ The scraped interfaces which are used by most websites:
 At each **snapshot** all **available dates** are recorded for each listed 
 office department. The **tevis** system shows the available dates for
 the next **N** full weeks, where **N** is set to **8** in my recording job.
-The **etermin** system shows the next **N** * 7 days.
+The **etermin** system is asked for the next **N** * 7 days.
 The **netappoint** system usually shows the next **28 days** and not more.
  
 Here's an example for one day from the 
@@ -310,12 +310,9 @@ fit the perceived reality.
 
   Started scraper [berlin.py](src/sources/berlin.py) but they 
   protected themselves with throttling and captchas.
-  
-- https://www.etermin.net/stadtolfen and supposedly 27000 
-  other schedules - fully [APIfied](https://www.etermin.net/online-terminplaner-api)
-  
+    
 - https://www.radiologie-mannheim.de/online-terminvereinbarung/ is 
-  using [termed.de](https://www.termed.de/) which is also 
+  using [termed.de](https://www.termed.de/) which is  
   fully APIfied
   
 - https://scheduler.mobimed.at/kinemedic/
