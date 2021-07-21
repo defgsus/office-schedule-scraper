@@ -67,6 +67,7 @@ class TevisBaseScraper(SourceBase):
             "cnc": cnc_items,
             "calendar": dict(),
         }
+
         for calendar in calendars:
             if calendar == "0":
                 continue
@@ -75,7 +76,7 @@ class TevisBaseScraper(SourceBase):
                 data = self.get_tevis_caldiv(calendar, year, week)
 
                 data.pop("html", None)
-                #print(data)
+
                 if calendar not in ret_data["calendar"]:
                     ret_data["calendar"][calendar] = []
                 ret_data["calendar"][calendar].append(data)
@@ -95,26 +96,76 @@ class TevisBaseScraper(SourceBase):
         cnc = list()
         soup = self.get_html_soup(f"{self.BASE_URL}/select2?md={md}")
         for form in soup.find_all("form", {"class": "cnc-form"}):
-            #print(form)
+            cnc_item = form.find("input", {"class": "cnc-item"})
             cnc.append({
+                "md": md,
                 "mdt": form.find("input", {"name": "mdt"}).get("value"),
-                "calendar": form.find("input", {"class": "cnc-item"}).get("data-tevis-calendars"),
+                "calendar": cnc_item.get("data-tevis-calendars"),
+                "location": self._short_set(cnc_item.get("data-tevis-locations")),
                 "title": form.find("a").text.strip(),
             })
 
         if not cnc:
+            mdt = soup.find("input", {"name": "mdt"}).get("value")
+            # select_cnc = soup.find("input", {"name": "select_cnc"}).get("value")
             for i in soup.find_all("input", {"class": "cnc-item"}):
                 data = {
-                    "calendar": i.get("data-tevis-calendars"),
+                    "md": md,
+                    "mdt": mdt,
+                    "cnc_id": i.get("data-tevis-cncid"),
+                    "location": self._short_set(i.get("data-tevis-locations")),
                 }
                 a = i.parent.parent.find("a", {"data-html": "true"})
                 if a:
                     data["name"] = a.text.strip()
+                else:
+                    if i.get("data-tevis-cncname"):
+                        data["name"] = i.get("data-tevis-cncname")
 
                 cnc.append(data)
 
+            cnc_ids = sorted(set(i["cnc_id"] for i in cnc))
+            cal = str(self.get_tevis_location_calendar(mdt, cnc_ids))
+            for c in cnc:
+                c["calendar"] = cal
+
         return cnc
+
+    def _short_set(self, s: Optional[str]) -> Optional[str]:
+        if not s:
+            return s
+        return "|".join(sorted(set(s.split("|"))))
 
     def get_tevis_caldiv(self, calendar: str, year, week) -> dict:
         url = f"{self.BASE_URL}/caldiv?cal={calendar}&cnc=0&cncdata=&week={year:04d}{week:02d}&json=1&offset=1"
         return self.get_json(url)
+
+    def get_tevis_location_calendar(self, mdt: str, cnc_ids: Iterable[str]) -> str:
+        query = {
+            "mdt": mdt,
+            "select_cnc": 1,
+        }
+        # select first 'concern'
+        for i, id in enumerate(cnc_ids):
+            query[f"cnc-{id}"] = 1 if i == 0 else 0
+
+        html = self.get_url(f"{self.BASE_URL}/calendar", data=query)
+
+        try:
+            idx = html.index("window.tevis = window.tevis || {")
+        except ValueError:
+            # some locations required registration before showing the calendar
+            if "Eingabe der persönlichen Daten für den Termin" in html:
+                return "0"
+            if "Der ausgewählte Kalender existiert nicht oder kann nicht ausgewählt werden." in html:
+                return "0"
+
+            print(html)
+            raise ValueError(f"Missing tevis script data for mdt '{mdt}'")
+        script = html[idx+31:]
+        script = script[:script.index("$(document).ready(")]
+
+        cal = script[script.index("calendar:")+9:]
+        cal = cal[:cal.index(",")].strip()
+
+        return cal

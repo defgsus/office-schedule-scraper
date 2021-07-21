@@ -119,9 +119,11 @@ class Weilheimschongau(TevisBaseScraper):
     BASE_URL = "https://termine-reservieren.de/termine/weilheimschongau"
 
 
-class Westerwaldkreis(TevisBaseScraper):
-    ID = "westerwaldkreis"
-    BASE_URL = "https://termine-reservieren.de/termine/westerwaldkreis"
+# TODO: they use a 'suggest' page which currently is not supported
+#   e.g. https://termine-reservieren.de/termine/westerwaldkreis/suggest?mdt=540&select_cnc=1&cnc-1226=1&cnc-1229=0&cnc-1250=0&cnc-1235=0&cnc-1234=0&cnc-1230=0&cnc-1231=0&cnc-1232=0&cnc-1233=0&cnc-1237=0&cnc-1238=0&cnc-1239=0&cnc-1227=0&cnc-1228=0&cnc-1236=0&cnc-1241=0&cnc-1242=0&cnc-1243=0&cnc-1240=0&cnc-1244=0&cnc-1245=0&cnc-1246=0&cnc-1247=0&cnc-1248=0&cnc-1249=0
+#class Westerwaldkreis(TevisBaseScraper):
+#    ID = "westerwaldkreis"
+#    BASE_URL = "https://termine-reservieren.de/termine/westerwaldkreis"
 
 
 class Wittmund(TevisBaseScraper):

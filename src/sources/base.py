@@ -8,7 +8,7 @@ import unicodedata
 import re
 import time
 from copy import deepcopy
-from typing import Tuple, List, Dict, Type, Optional, Union, Generator
+from typing import Tuple, List, Dict, Type, Optional, Union, Generator, Iterable
 
 import requests
 import bs4
@@ -149,7 +149,7 @@ class SourceBase:
 
         for try_num in range(3):
             try:
-                print("downloading", url, data)
+                print("downloading", url, data or "")
                 kwargs = dict(
                     timeout=10,
                     verify=self.VERIFY_CERTIFICATE,
