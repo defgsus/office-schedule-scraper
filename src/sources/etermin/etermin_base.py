@@ -71,6 +71,10 @@ class ETerminBase(SourceBase):
                         "service_id": group["service_id"],
                         "duration": group["duration"],
                     }
+                    for s in ret_data["services"]:
+                        if s["group_id"] == group_id:
+                            s.setdefault("calendar_ids", set())
+                            s["calendar_ids"].add(cal["calendarid"])
 
                     timeslot_days = self.et_get_time_slot_days(
                         date=now.date(),
@@ -103,6 +107,10 @@ class ETerminBase(SourceBase):
             }
             for calendar_id, cal in calendar_timeslots.items()
         ]
+
+        for s in ret_data["services"]:
+            if s.get("calendar_ids"):
+                s["calendar_ids"] = sorted(s["calendar_ids"])
 
         return ret_data
 
