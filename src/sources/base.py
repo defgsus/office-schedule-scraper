@@ -47,6 +47,10 @@ class SourceBase:
     def __init_subclass__(cls, **kwargs):
         if "Base" not in cls.__name__:
             assert cls.ID, f"Must define {cls.__name__}.ID"
+            if cls.ID in installed_sources:
+                raise AssertionError(
+                    f"Duplicate scraper ID '{cls.ID}' used in {installed_sources[cls.ID].__name__} and {cls.__name__}"
+                )
             installed_sources[cls.ID] = cls
 
     def __init__(self, num_weeks: int = 4, use_cache: bool = False):

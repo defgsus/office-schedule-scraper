@@ -22,36 +22,107 @@ class ETerminBase(SourceBase):
         return cls.ET_URL.lower()
 
     def make_snapshot(self):
-        services = self.ek_get_services()
+        services = self.et_get_services()
+
+        ret_data = {
+            "services": [],
+            "calendars": [],
+        }
+        groups = dict()
 
         for s in services:
-            print(s["sgid"], s["sid"], s["s"])
+            if s.get("s"):
+                group_id, service_id, name = s["sgid"], s["sid"], s["s"]
+                duration = s.get("duration")
+                ret_data["services"].append({
+                    "group_id": group_id,
+                    "service_id": service_id,
+                    "name": name,
+                    "duration": duration,
+                })
+                # pick service with smallest duration per group
+                if duration:
+                    if group_id not in groups or duration < groups[group_id]["duration"]:
+                        groups[group_id] = {"duration": duration, "service_id": service_id}
 
-    def ek_get_settings(self) -> dict:
+        now = self.now()
+
+        calendars_retrieved = set()
+        calendar_timeslots = dict()
+
+        for group_id, group in groups.items():
+            cals = self.et_get_calendar_list(group["service_id"])
+            for cal in cals:
+                if cal["calendarid"] not in calendars_retrieved:
+                    cal_data = {
+                        "group_id": group_id,
+                        "name": cal["calendarname"],
+                        "service_id": group["service_id"],
+                        "duration": group["duration"],
+                    }
+
+                    timeslot_days = self.et_get_time_slot_days(
+                        date=now.date(),
+                        calendar_id=cal["calendarid"], service_id=group["service_id"],
+                        duration=group["duration"]
+                    )
+                    for day in timeslot_days:
+                        if day.get("available"):
+                            timeslots = self.et_get_time_slots(
+                                date=day["start"][:10],
+                                calendar_id=cal["calendarid"], service_id=group["service_id"],
+                                duration=group["duration"]
+                            )
+                            for ts in timeslots:
+                                if ts["calendarid"] not in calendar_timeslots:
+                                    calendar_timeslots[ts["calendarid"]] = {
+                                        "name": ts["calendarname"],
+                                        "dates": set(),
+                                    }
+                                calendar_timeslots[ts["calendarid"]]["dates"].add(
+                                    ts["start"]
+                                )
+                                # print(ts["start"], ts["cap"], ts["available"], ts["f"], ts["calendarid"])
+
+        ret_data["calendars"] = [
+            {
+                "id": calendar_id,
+                "name": cal["name"],
+                "dates": sorted(cal["dates"]),
+            }
+            for calendar_id, cal in calendar_timeslots.items()
+        ]
+
+        return ret_data
+
+    def et_get_settings(self) -> dict:
         return self.get_json(
             f"{self.BASE_URL}/api/settingbs?t=",
-            headers={
-                "Referer": f"https://www.etermin.net/{self.ET_URL}",
-                "webid": self.et_id(),
-            }
         )
 
-    def ek_get_services(self) -> List[dict]:
+    def et_get_services(self) -> List[dict]:
         return self.get_json(
             f"{self.BASE_URL}/api/servicegroupservice?cache=1&w={self.et_id()}&vlang=de",
-            headers={
-                "Referer": f"https://www.etermin.net/{self.ET_URL}",
-                "webid": self.et_id(),
-            }
         )
 
-    def ek_get_calendar_list(self, service_id) -> List[dict]:
+    def et_get_calendar_list(self, service_id) -> List[dict]:
         return self.get_json(
             f"{self.BASE_URL}/api/calendar?availablecal=1&lang=de&serviceid={service_id}&calendarid=undefined",
-            headers={
-                "Referer": f"https://www.etermin.net/{self.ET_URL}",
-                "webid": self.et_id(),
-            }
+        )
+
+    def et_get_time_slot_days(self, date: datetime.date, calendar_id: str, service_id: str, duration: int) -> List[dict]:
+        return self.get_json(
+            f"{self.BASE_URL}/api/timeslots?date={date}&serviceid={service_id}&rangesearch=1&caching=false&capacity="
+            f"&duration={duration}&cluster=false&slottype=0&fillcalendarstrategy=0&showavcap=true"
+            f"&appfuture={self.num_weeks*7}&appdeadline=0&appdeadlinewm=0&msdcm=0&calendarid={calendar_id}"
+        )
+
+    def et_get_time_slots(self, date: datetime.date, calendar_id: str, service_id: str, duration: int) -> List[dict]:
+        return self.get_json(
+            f"{self.BASE_URL}/api/timeslots?date={date}&serviceid={service_id}&capacity=1&caching=false"
+            f"&duration={duration}&cluster=false&slottype=0&fillcalendarstrategy=0&showavcap=true&appfuture=14"
+            f"&appdeadline=0&msdcm=0&appdeadlinewm=0&tz=W.%20Europe%20Standard%20Time&tzaccount=W.%20Europe%20Standard%20Time"
+            f"&calendarid={calendar_id}"
         )
 
     def get_json(self, url, method="GET", data=None, headers=None, encoding=None) -> Union[list, dict]:
@@ -65,14 +136,14 @@ class ETerminBase(SourceBase):
             "Pragma": "no-cache",
             "Connection": "keep-alive",
             "Content-Type": "application/json",
-            #"Referer": f"https://www.etermin.net/{url_part}",
             "Host": "www.etermin.net",
             "Cache-Control": "no-cache",
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "TE": "trailers",
-            #"webid": url_part.lower(),
+            "Referer": f"https://www.etermin.net/{self.ET_URL}",
+            "webid": self.et_id(),
         })
         return super().get_json(url, method, data=data, headers=headers, encoding=encoding)
 

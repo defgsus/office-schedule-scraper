@@ -747,8 +747,6 @@ HAND_PICKED = [
     ("wiehl", "Stadt Wiehl", "stadtwiehl"),
     ("itzehoe", "Stadt Itzehoe Einwohnermeldeamt", "Stadt_Itzehoe"),
     ("grazamt", "BürgerInnenamt Stadt Graz", "buergerinnenamt"),
-    ("ru1", "Abt. Bau- und Raumordnungsrecht" "ru1"),
-    ("ru7", "Abt. Raumordnung und Gesamtverkehrsangelegenheiten", "ru7"),
     ("mittenwalde", "Stadt Mittenwalde", "StadtMittenwalde"),
     ("stuttgartpalais", "StadtPalais - Museum für Stuttgart", "stadtlaborstuttgart"),
     ("blankenburg", "Stadt Blankenburg (Harz)", "blankenburg"),
@@ -776,34 +774,11 @@ HAND_PICKED = [
     ("goslartest", "Testzentrum Goslar", "testzentrumgoslar"),
     ("daunvg", "Verbandsgemeindeverwaltung Daun", "vgdaun"),
     ("bonnjob", "Jobcenter Bonn", "jcbn"),
-    # ("brueckenbau", "Abt. Brückenbau", "ST5"),  # http://www.noe.gv.at/noe/Kontakt-Landesverwaltung/Gruppe_Strasse.html
     ("teublitztest", "Corona-Schnellteststelle Teublitz", "spitzwegapo"),
     ("stahnsdorf", "Gemeinde Stahnsdorf", "stahnsdorf"),
     ("elitheratest", "Corona TESTZENTRUM im Elithera", "testzentrum1"),
 ]
 
 
-for source_id, name, url_part in HAND_PICKED:
-    response = requests.get(
-        f"https://www.etermin.net/api/settingbs?t=",
-        headers={
-            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:90.0) Gecko/20100101 Firefox/90.0",
-            #"Accept": "application/json, text/plain",
-            #"Accept-Language": "en-US,en;q=0.5",
-            #"Accept-Encoding": "gzip, deflate, br",
-            #"Pragma": "no-cache",
-            #"Connection": "keep-alive",
-            #"Content-Type": "application/json",
-            "Referer": f"https://www.etermin.net/{url_part}",
-            "Host": "www.etermin.net",
-            #"Cache-Control": "no-cache",
-            #"Sec-Fetch-Dest": "empty",
-            #"Sec-Fetch-Mode": "cors",
-            #"Sec-Fetch-Site": "same-origin",
-            #"TE": "trailers",
-            "webid": url_part.lower(),
-        }
-    )
-    print("\n", source_id, url_part, name)
-    print(response.content)
-    break
+for source_id, name, url_part in sorted(HAND_PICKED, key=lambda t: t[0]):
+    print(f'("{source_id}", "{name}", "{url_part}"),')
