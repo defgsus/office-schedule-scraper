@@ -67,7 +67,7 @@ class DataSources:
             .set_index("index")
             .sort_values("name")
         )
-        print(df.to_markdown())
+        print(df.to_markdown(index=False))
 
     def sources(self, num_weeks: int = 4):
         return [
