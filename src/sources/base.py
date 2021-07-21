@@ -41,12 +41,14 @@ class SourceBase:
     # provide a name to exclude from parallel processing
     MULTI_PROCESS_GROUP: Optional[str] = None
 
-    ID = None
-    BASE_URL = None
+    ID: str = None
+    NAME: str = None
+    BASE_URL: str = None
 
     def __init_subclass__(cls, **kwargs):
         if "Base" not in cls.__name__:
             assert cls.ID, f"Must define {cls.__name__}.ID"
+            assert cls.NAME, f"Must define {cls.__name__}.NAME"
             if cls.ID in installed_sources:
                 raise AssertionError(
                     f"Duplicate scraper ID '{cls.ID}' used in {installed_sources[cls.ID].__name__} and {cls.__name__}"

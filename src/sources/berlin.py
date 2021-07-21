@@ -26,6 +26,7 @@ class Berlin(SourceBase):
     So this is not finished and not imported by __init__.py
     """
     ID = "berlin"
+    NAME = "Stadt Berlin"
 
     BASE_URL = "https://service.berlin.de"
 

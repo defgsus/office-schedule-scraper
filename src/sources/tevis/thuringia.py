@@ -18,20 +18,24 @@ from .tevis_base import *
 
 class IlmKreisScraper(TevisBaseScraper):
     ID = "ilmkreis"
+    NAME = "Ilm-Kreis"
     BASE_URL = "https://tvweb.ilm-kreis.de/ilmkreis"
 
 
 class JenaScraper(TevisBaseScraper):
     ID = "jena"
+    NAME = "Stadt Jena"
     BASE_URL = "https://tevis-bs.jena.de"
 
 
 class NordhausenScraper(TevisBaseScraper):
     ID = "nordhausen"
+    NAME = "Stadt Nordhausen"
     BASE_URL = "https://tevis.svndh.de"
 
 
 class WeimarScraper(TevisBaseScraper):
     ID = "weimar"
+    NAME = "Stadt Weimar"
     BASE_URL = "https://tevis.weimar.de"
 

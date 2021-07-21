@@ -12,6 +12,7 @@ class ImpfThueringen(SourceBase):
 
     """
     ID = "impfthueringen"
+    NAME = "Impftermin Thüringen"
 
     BASE_URL = "https://www.impfen-thueringen.de/terminvergabe"
 

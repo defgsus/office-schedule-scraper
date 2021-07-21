@@ -21,6 +21,17 @@ class ETerminBase(SourceBase):
     def et_id(cls) -> str:
         return cls.ET_URL.lower()
 
+    @classmethod
+    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+        ret_data = []
+        for cal in data["calendars"]:
+            ret_data.append({
+                "location_id": cal["id"],
+                "location_name": cal["name"],
+                "dates": [datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S") for d in cal["dates"]],
+            })
+        return ret_data
+
     def make_snapshot(self):
         services = self.et_get_services()
 

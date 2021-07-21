@@ -25,6 +25,7 @@ class Leipzig(SourceBase):
 
     """
     ID = "leipzig"
+    NAME = "Stadt Leipzig"
     BASE_URL = "https://tnv.leipzig.de/tnv"
 
     #REQUEST_DELAY = .1

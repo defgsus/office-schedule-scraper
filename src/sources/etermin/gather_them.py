@@ -752,7 +752,6 @@ HAND_PICKED = [
     ("blankenburg", "Stadt Blankenburg (Harz)", "blankenburg"),
     ("wedemarktest", "Corona-Schnelltestzentrum Caspar & Dase für die Wedemark", "Schnelltestungen"),
     ("hammersbachtest", "Schnelltestzentrum Hammersbach", "Schnelltestzentrum"),
-    ("baselgewerbe", "Wirtschaft unter Strom - Online Termin buchen", "gewerbe-basel"),
     ("bbmess", "Landesamt für Mess- und Eichwesen Berlin-Brandenburg", "lme-be-bb"),
     ("geldernsw", "Stadtwerke Geldern Netz", "Zaehlerwechseltermine"),
     ("weimarunioffice", "Bauhaus-Universität Weimar Erdgeschoss Raum 002", "international-office"),
@@ -781,4 +780,8 @@ HAND_PICKED = [
 
 
 for source_id, name, url_part in sorted(HAND_PICKED, key=lambda t: t[0]):
+    if 0:
+        response = requests.get(f"https://www.etermin.net/{url_part}/", allow_redirects=False)
+        if response.status_code != 200:
+            continue
     print(f'("{source_id}", "{name}", "{url_part}"),')

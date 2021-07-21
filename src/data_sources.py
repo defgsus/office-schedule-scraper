@@ -25,10 +25,10 @@ class DataSources:
         self.include_type = include_type
 
         self.source_classes: List[Type[SourceBase]] = []
-        for name, cls in installed_sources.items():
-            if exclude and fnmatch.fnmatchcase(name, exclude):
+        for cls in installed_sources.values():
+            if exclude and (fnmatch.fnmatchcase(cls.ID, exclude) or fnmatch.fnmatchcase(cls.NAME, exclude)):
                 continue
-            if include and not fnmatch.fnmatchcase(name, include):
+            if include and not fnmatch.fnmatchcase(cls.ID, include) and not fnmatch.fnmatchcase(cls.NAME, include):
                 continue
             if include_type and not fnmatch.fnmatchcase(cls.SCRAPER_TYPE, include_type):
                 continue
@@ -58,11 +58,15 @@ class DataSources:
 
             rows.append({
                 "index": i+1,
-                "source_id": s.ID,
+                "name": s.NAME,
                 "scraper": s.SCRAPER_TYPE,
                 "url": f"[{short_url}]({url})",
             })
-        df = pd.DataFrame(rows).set_index("index")
+        df = (
+            pd.DataFrame(rows)
+            .set_index("index")
+            .sort_values("name")
+        )
         print(df.to_markdown())
 
     def sources(self, num_weeks: int = 4):

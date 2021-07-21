@@ -3,7 +3,6 @@ from .etermin_base import *
 
 HAND_PICKED = [
     ("asbtest", "Corona Testcenter", "ASBTestcenter"),
-    ("baselgewerbe", "Wirtschaft unter Strom - Online Termin buchen", "gewerbe-basel"),
     ("bbmess", "Landesamt für Mess- und Eichwesen Berlin-Brandenburg", "lme-be-bb"),
     ("billerbeck", "Stadt Billerbeck Verwaltung", "termininbillerbeck"),
     ("blankenburg", "Stadt Blankenburg (Harz)", "blankenburg"),
@@ -43,7 +42,6 @@ HAND_PICKED = [
     ("wedemarktest", "Corona-Schnelltestzentrum Caspar & Dase für die Wedemark", "Schnelltestungen"),
     ("weimarunioffice", "Bauhaus-Universität Weimar Erdgeschoss Raum 002", "international-office"),
     ("wiehl", "Stadt Wiehl", "stadtwiehl"),
-    ("wienak", "Ärztekammer für Wien", "AerztekammerWien"),
 ]
 
 """
