@@ -17,16 +17,20 @@ class DataSources:
             use_cache: bool = False,
             include: Optional[str] = None,
             exclude: Optional[str] = None,
+            include_type: Optional[str] = None,
     ):
         self.use_cache = use_cache
         self.include = include
         self.exclude = exclude
+        self.include_type = include_type
 
         self.source_classes: List[Type[SourceBase]] = []
         for name, cls in installed_sources.items():
             if exclude and fnmatch.fnmatchcase(name, exclude):
                 continue
             if include and not fnmatch.fnmatchcase(name, include):
+                continue
+            if include_type and not fnmatch.fnmatchcase(cls.SCRAPER_TYPE, include_type):
                 continue
 
             self.source_classes.append(cls)
