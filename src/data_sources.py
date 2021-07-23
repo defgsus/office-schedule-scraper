@@ -88,8 +88,8 @@ class DataSources:
     def dump_snapshot_table(self, num_weeks: int = 4):
         import pandas as pd
         import numpy as np
+
         dic = dict()
-        all_dates = set()
         for s in self.sources(num_weeks=num_weeks):
             data = s.make_snapshot()
             data = s.convert_snapshot(data)
@@ -97,12 +97,37 @@ class DataSources:
                 for d in loc["dates"]:
                     if d not in dic:
                         dic[d] = dict()
-                    dic[d][loc["location_name"]] = "X"
+                    dic[d][s.ID + "|" + loc["location_name"]] = "X"
         df = (
             pd.DataFrame(dic).transpose().sort_index()
             .replace({np.nan: ""})
         )
         print(df.to_markdown())
+
+    def dump_snapshot_table(self):
+        import pandas as pd
+        import numpy as np
+
+        dic = dict()
+        for s in self.sources():
+
+            for dt, _, data in s.iter_snapshot_data(
+                    date_from=self.date_from, date_to=self.date_to, with_unchanged=False
+            ):
+                data = s.convert_snapshot(data)
+                for loc in data:
+                    for d in loc["dates"]:
+                        if d not in dic:
+                            dic[d] = dict()
+                        dic[d][s.ID + "|" + loc["location_name"][:10]] = "X"
+
+                df = (
+                    pd.DataFrame(dic).transpose().sort_index()
+                        .replace({np.nan: ""})
+                )
+                print("\n")
+                print(s.ID, "@", dt)
+                print(df.to_markdown())
 
     def make_snapshot(self, num_weeks: int = 4, processes: int = 1):
         sources = self.sources(num_weeks=num_weeks)
@@ -252,9 +277,9 @@ class DataSources:
         df = pd.DataFrame(changes).set_index("date")
 
         for source_id in sorted(df["source_id"].unique()):
-            for loc_id in sorted(df["location_id"].unique()):
+            for loc_id in sorted(df["location_name"].unique()):
                 df2 = df[df["source_id"] == source_id]
-                df2 = df2[df2["location_id"] == loc_id]
+                df2 = df2[df2["location_name"] == loc_id]
                 if resample:
                     df2 = df2.resample(resample).sum()
                     df2 = pd.DataFrame({
@@ -317,6 +342,7 @@ class DataSources:
                         ret_data.append({
                             "source_id": s.ID,
                             "location_id": location["location_id"],
+                            "location_name": location["location_name"],
                             "date": dt,
                             "free_dates": len(location["dates"]),
                             "appointments": len(appointments),

@@ -15,16 +15,17 @@ class TevisBaseScraper(SourceBase):
 
     @classmethod
     def convert_snapshot(cls, data: Union[dict, list]) -> Optional[List[dict]]:
-        #print(json.dumps(data["cnc"], indent=2))
-        #exit()
-
         if not data["cnc"]:
             return None
 
         cal_id_2_name = dict()
         for c in data["cnc"]:
             for c_id in c["calendar"].split("|"):
-                cal_id_2_name[c_id] = c.get("name", c_id)
+                if not c.get("md"):
+                    # old snapshot version before adding md
+                    cal_id_2_name[c_id] = c.get("name", c.get("title", c_id))
+                else:
+                    cal_id_2_name[c_id] = data["md"][c["md"]]
 
         ret_data = []
         for cal_id, cals in data["calendar"].items():
