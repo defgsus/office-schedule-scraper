@@ -1,4 +1,5 @@
 # from .berlin import *
+# from .impftermin import *
 from .impfthueringen import *
 from .leipzig import *
 

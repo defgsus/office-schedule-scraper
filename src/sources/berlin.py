@@ -20,6 +20,8 @@ MONTH_MAPPING = {
 
 class Berlin(SourceBase):
     """
+    NOT IMPLEMENTED
+
     Started Berlin scraper just to find that they have
     a couple of protections including captchas.
 
