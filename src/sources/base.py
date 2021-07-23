@@ -102,6 +102,63 @@ class SourceBase:
             changed = sorted_dates != sorted_prev_dates
         return appointments, cancellations, changed
 
+    def iter_snapshot_filenames(
+            self,
+            date_from: Optional[str] = None,
+            date_to: Optional[str] = None,
+    ) -> Generator[Tuple[datetime.datetime, Path], None, None]:
+        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
+            date_str = fn.name[:19]
+            if date_from and not date_str >= date_from:
+                continue
+            if date_to and not date_str < date_to:
+                continue
+            dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
+            yield dt, fn
+
+    def iter_error_filenames(
+            self,
+            date_from: Optional[str] = None,
+            date_to: Optional[str] = None,
+    ) -> Generator[Tuple[datetime.datetime, Path], None, None]:
+        for fn in (self.ERROR_DIR / self.ID).glob("*/*.json"):
+            date_str = fn.name[:19]
+            if date_from and not date_str >= date_from:
+                continue
+            if date_to and not date_str < date_to:
+                continue
+            dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
+            yield dt, fn
+
+    def iter_snapshot_data(
+            self,
+            date_from: Optional[str] = None,
+            date_to: Optional[str] = None,
+            with_unchanged: bool = False
+    ) -> Generator[Tuple[datetime.datetime, bool, Union[dict, list]], None, None]:
+        previous_data = None
+        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
+            date_str = fn.name[:19]
+            dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
+            unchanged = "unchanged.json" in str(fn)
+            if not unchanged:
+                data = json.loads(fn.read_text())
+                if not (isinstance(data, dict) and "unchanged" in data):
+                    yield dt, False, data
+                    previous_data = data
+                    continue
+
+            date_str = fn.name[:19]
+            if date_from and not date_str >= date_from:
+                continue
+            if date_to and not date_str < date_to:
+                continue
+
+            # yield unchanged data
+            if with_unchanged:
+                assert previous_data is not None, f"unchanged data before real data @ {dt} / {fn}"
+                yield dt, True, previous_data
+
     # ---- below are all helpers for derived classes ----
 
     def now(self) -> datetime.datetime:
@@ -215,36 +272,6 @@ class SourceBase:
 
     def soup(self, html: str):
         return bs4.BeautifulSoup(html, features="html.parser")
-
-    def iter_snapshot_filenames(self) -> Generator[Tuple[datetime.datetime, Path], None, None]:
-        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
-            dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
-            yield dt, fn
-
-    def iter_snapshot_data(
-            self,
-            with_unchanged: bool = False
-    ) -> Generator[Tuple[datetime.datetime, bool, Union[dict, list]], None, None]:
-        previous_data = None
-        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
-            dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
-            unchanged = "unchanged.json" in str(fn)
-            if not unchanged:
-                data = json.loads(fn.read_text())
-                if not (isinstance(data, dict) and "unchanged" in data):
-                    yield dt, False, data
-                    previous_data = data
-                    continue
-
-            # yield unchanged data
-            if with_unchanged:
-                assert previous_data is not None, f"unchanged data before real data @ {dt} / {fn}"
-                yield dt, True, previous_data
-
-    def iter_error_filenames(self) -> Generator[Tuple[datetime.datetime, Path], None, None]:
-        for fn in (self.ERROR_DIR / self.ID).glob("*/*.json"):
-            dt = datetime.datetime.strptime(fn.name[:19], "%Y-%m-%d-%H-%M-%S")
-            yield dt, fn
 
 
 def get_calendar_table(dates: List[str]):

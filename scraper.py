@@ -31,6 +31,14 @@ def parse_args():
         "-it", "--include-type", type=str,
         help="wildcard pattern for source types to include"
     )
+    parser.add_argument(
+        "-df", "--date-from", type=str,
+        help="date string to limit considered snapshots. snapshot-date >= date-from"
+    )
+    parser.add_argument(
+        "-dt", "--date-to", type=str,
+        help="date string to limit considered snapshots. snapshot-date < date-to"
+    )
 
     parser.add_argument(
         "-w", "--weeks", type=int, default=4,
@@ -61,6 +69,8 @@ def main(args):
         include=args.include,
         exclude=args.exclude,
         include_type=args.include_type,
+        date_from=args.date_from,
+        date_to=args.date_to,
     )
 
     if args.command == "list":

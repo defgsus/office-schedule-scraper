@@ -18,11 +18,15 @@ class DataSources:
             include: Optional[str] = None,
             exclude: Optional[str] = None,
             include_type: Optional[str] = None,
+            date_from: Optional[str] = None,
+            date_to: Optional[str] = None,
     ):
         self.use_cache = use_cache
         self.include = include
         self.exclude = exclude
         self.include_type = include_type
+        self.date_from = date_from
+        self.date_to = date_to
 
         self.source_classes: List[Type[SourceBase]] = []
         for cls in installed_sources.values():
@@ -173,15 +177,15 @@ class DataSources:
             return unchanged
 
     def dump_snapshot_status(self):
+        import pandas as pd
         sources = self.sources()
-        max_id_len = max(len(s.ID) for s in sources)
-        max_type_len = max(len(s.SCRAPER_TYPE) for s in sources)
+        rows = []
         for s in sources:
             num_snapshots = 0
             num_unchanged_snapshots = 0
-            num_errors = len(list(s.iter_error_filenames()))
+            num_errors = len(list(s.iter_error_filenames(date_from=self.date_from, date_to=self.date_to)))
 
-            for dt, fn in s.iter_snapshot_filenames():
+            for dt, fn in s.iter_snapshot_filenames(date_from=self.date_from, date_to=self.date_to):
                 num_snapshots += 1
                 unchanged = "-unchanged.json" in str(fn)
                 if unchanged:
@@ -190,11 +194,16 @@ class DataSources:
             num_changed = num_snapshots - num_unchanged_snapshots
             num_changed_p = num_changed / max(num_snapshots, 1) * 100
             num_changed_p = f"{num_changed_p:.2f}%"
-            print(
-                f"{s.ID:{max_id_len}} {s.SCRAPER_TYPE:{max_type_len}}"
-                f"{num_snapshots:5d} snapshots {num_changed:5d} changes ({num_changed_p:7}) "
-                f"errors: {num_errors}"
-            )
+            rows.append({
+                "source_id": s.ID,
+                "scraper": s.SCRAPER_TYPE,
+                "snapshots": num_snapshots,
+                "changed": num_changed,
+                "changed %": num_changed_p,
+                "errors": num_errors,
+            })
+        df = pd.DataFrame(rows).set_index("source_id").sort_index()
+        print(df.to_string(max_rows=df.shape[0]))#, max_cols=df.shape[1]))
 
     def dump_convert_snapshots(self):
         data = self.convert_snapshots()
@@ -210,7 +219,10 @@ class DataSources:
         sources = self.sources()
         sources_data = {s.ID: None for s in sources}
         for s in tqdm(sources):
-            for dt, unchanged, snapshot_data in s.iter_snapshot_data(with_unchanged=with_unchanged):
+            for dt, unchanged, snapshot_data in s.iter_snapshot_data(
+                    date_from=self.date_from, date_to=self.date_to,
+                    with_unchanged=with_unchanged
+            ):
                 try:
                     data = self.convert_snapshot(s, snapshot_data)
                 except Exception as e:
@@ -263,7 +275,10 @@ class DataSources:
         ret_data = []
         for s in tqdm(sources):
             prev_locations = dict()
-            for idx, (dt, unchanged, snapshot_data) in enumerate(s.iter_snapshot_data(with_unchanged=False)):
+            for idx, (dt, unchanged, snapshot_data) in enumerate(s.iter_snapshot_data(
+                    date_from=self.date_from, date_to=self.date_to,
+                    with_unchanged=False
+            )):
                 data = self.convert_snapshot(s, snapshot_data)
                 if data is None:
                     continue
@@ -335,11 +350,11 @@ class DataSources:
         for s in self.sources():
             num_snapshots = 0
             num_unchanged_snapshots = 0
-            num_errors = len(list(s.iter_error_filenames()))
+            num_errors = len(list(s.iter_error_filenames(date_from=self.date_from, date_to=self.date_to)))
 
             min_date = None
             max_date = None
-            for dt, fn in s.iter_snapshot_filenames():
+            for dt, fn in s.iter_snapshot_filenames(date_from=self.date_from, date_to=self.date_to):
                 if min_date is None:
                     min_date = max_date = dt
                 max_date = max(max_date, dt)
@@ -365,7 +380,7 @@ class DataSources:
             })
 
         df = pd.DataFrame(rows)
-        print(df.to_string(max_rows=df.shape[0]))#, max_cols=df.shape[1]))
+        # print(df.to_string(max_rows=df.shape[0]))#, max_cols=df.shape[1]))
         print(df.to_markdown())
 
 
