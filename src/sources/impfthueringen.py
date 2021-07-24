@@ -17,7 +17,7 @@ class ImpfThueringen(SourceBase):
     BASE_URL = "https://www.impfen-thueringen.de/terminvergabe"
 
     @classmethod
-    def convert_snapshot(cls, data: Union[dict, list]) -> Optional[List[dict]]:
+    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
         ret_data = []
         for row in data:
             ret_data.append({

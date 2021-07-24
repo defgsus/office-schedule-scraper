@@ -22,12 +22,45 @@ class ETerminBase(SourceBase):
         return cls.ET_URL.lower()
 
     @classmethod
-    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
+        # print(json.dumps(data, indent=2))
+
+        #cal_ids = sorted(set(cal["id"] for cal in data["calendars"]))
+        #cal_id_2_service = dict()
+        #for ser in sorted(data["services"], key=lambda s: s["duration"]):
+        #    if ser.get("calendar_ids"):
+        #        ser_cal_ids = ",".join(ser["calendar_ids"])
+        #        for cal_id in cal_ids:
+        #            if cal_id not in cal_id_2_service:
+        #                if str(cal_id) in ser_cal_ids:
+        #                    cal_id_2_service[cal_id] = ser["name"]
+
+        name_2_cal_ids = dict()
+        for cal in data["calendars"]:
+            if cal["name"] not in name_2_cal_ids:
+                name_2_cal_ids[cal["name"]] = set()
+            name_2_cal_ids[cal["name"]].add(cal["id"])
+
+        cal_id_2_name = dict()
+        for name, cal_ids in name_2_cal_ids.items():
+            cal_ids = list(cal_ids)
+            if len(cal_ids) == 1:
+                cal_id_2_name[cal_ids[0]] = name
+            else:
+                for cal_id in cal_ids:
+                    cal_id_2_name[cal_id] = f"{name} ({cal_id})"
+                    #cal_id_2_name[cal_id] = f"{name} / {cal_id_2_service.get(cal_id, cal_id)}"
+
+        #print(dt)
+        #for cal_id in sorted(cal_id_2_name, key=lambda i: cal_id_2_name[i]):
+        #    print(cal_id, cal_id_2_name[cal_id])
+        #exit()
+
         ret_data = []
         for cal in data["calendars"]:
             ret_data.append({
                 "location_id": cal["id"],
-                "location_name": cal["name"],
+                "location_name": cal_id_2_name[cal["id"]],
                 "dates": [datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S") for d in cal["dates"]],
             })
         return ret_data

@@ -14,18 +14,22 @@ class TevisBaseScraper(SourceBase):
     SCRAPER_TYPE = "tevis"
 
     @classmethod
-    def convert_snapshot(cls, data: Union[dict, list]) -> Optional[List[dict]]:
+    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
         if not data["cnc"]:
             return None
 
+        md_2_cal_ids = dict()
+        cal_id_md_2_name = dict()
         cal_id_2_name = dict()
         for c in data["cnc"]:
             for c_id in c["calendar"].split("|"):
                 if not c.get("md"):
                     # old snapshot version before adding md
-                    cal_id_2_name[c_id] = c.get("name", c.get("title", c_id))
+                    cal_id_2_name[c_id] = c.get("title", c_id)
                 else:
-                    cal_id_2_name[c_id] = data["md"][c["md"]]
+                    name = data["md"][c["md"]]
+                    if c_id not in cal_id_2_name:
+                        cal_id_2_name[c_id] = f"{name} / {c.get('title')}"
 
         ret_data = []
         for cal_id, cals in data["calendar"].items():

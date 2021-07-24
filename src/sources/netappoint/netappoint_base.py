@@ -28,7 +28,7 @@ class NetAppointBase(SourceBase):
         return f"{cls.BASE_URL}/index.php?company={cls.NA_COMPANY}"
 
     @classmethod
-    def convert_snapshot(cls, data: Union[dict, list]) -> Optional[List[dict]]:
+    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
         ret_data = []
         for row in data:
             ret_data.append({

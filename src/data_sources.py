@@ -92,7 +92,7 @@ class DataSources:
         dic = dict()
         for s in self.sources(num_weeks=num_weeks):
             data = s.make_snapshot()
-            data = s.convert_snapshot(data)
+            data = s.convert_snapshot(datetime.datetime.now(), data)
             for loc in data:
                 for d in loc["dates"]:
                     if d not in dic:
@@ -114,7 +114,7 @@ class DataSources:
             for dt, _, data in s.iter_snapshot_data(
                     date_from=self.date_from, date_to=self.date_to, with_unchanged=False
             ):
-                data = s.convert_snapshot(data)
+                data = s.convert_snapshot(dt, data)
                 for loc in data:
                     for d in loc["dates"]:
                         if d not in dic:
@@ -249,7 +249,7 @@ class DataSources:
                     with_unchanged=with_unchanged
             ):
                 try:
-                    data = self.convert_snapshot(s, snapshot_data)
+                    data = self.convert_snapshot(s, dt, snapshot_data)
                 except Exception as e:
                     print(f"\nERROR in {s.ID} @ {dt}")
                     print(snapshot_data)
@@ -277,20 +277,24 @@ class DataSources:
         df = pd.DataFrame(changes).set_index("date")
 
         for source_id in sorted(df["source_id"].unique()):
-            for loc_id in sorted(df["location_name"].unique()):
+            for loc_name in sorted(df["location_name"].unique()):
                 df2 = df[df["source_id"] == source_id]
-                df2 = df2[df2["location_name"] == loc_id]
+                df2 = df2[df2["location_name"] == loc_name]
                 if resample:
                     df2 = df2.resample(resample).sum()
                     df2 = pd.DataFrame({
-                        "date": df2.index, "source_id": source_id, "location_id": loc_id,
+                        "date": df2.index,
+                        "source_id": source_id,
+                        "location_id": df2["location_id"],
+                        "location_name": loc_name,
                         "appointments": df2["appointments"],
                         "cancellations": df2["cancellations"],
                         "changed": df2["changed"],
                     }).set_index("date")
                 if df2.shape[0] > 1:
+                    print("\n---------", df2["source_id"][0], "/", df2["location_id"][0], "/", loc_name, "---------\n")
+                    df2.drop(["location_name", "location_id", "source_id"], inplace=True, axis=1, errors="ignore")
                     print(df2.to_string(max_rows=max(1, df.shape[0])))
-                    print()
 
     def get_snapshot_changes(self, days_ahead: int = 0, with_zeros: bool = False):
         from tqdm import tqdm
@@ -304,7 +308,7 @@ class DataSources:
                     date_from=self.date_from, date_to=self.date_to,
                     with_unchanged=False
             )):
-                data = self.convert_snapshot(s, snapshot_data)
+                data = self.convert_snapshot(s, dt, snapshot_data)
                 if data is None:
                     continue
 
@@ -354,8 +358,8 @@ class DataSources:
                         })
         return ret_data
 
-    def convert_snapshot(self, s: SourceBase, snapshot_data: Union[dict, list]) -> Optional[List[dict]]:
-        data = s.convert_snapshot(snapshot_data)
+    def convert_snapshot(self, s: SourceBase, dt: datetime.datetime, snapshot_data: Union[dict, list]) -> Optional[List[dict]]:
+        data = s.convert_snapshot(dt, snapshot_data)
         if data is None:
             return data
         for row in data:

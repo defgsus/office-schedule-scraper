@@ -70,7 +70,7 @@ class SourceBase:
         return cls.BASE_URL
 
     @classmethod
-    def convert_snapshot(cls, data: Union[dict, list]) -> List[dict]:
+    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
         raise NotImplementedError
 
     @classmethod
@@ -139,23 +139,24 @@ class SourceBase:
         previous_data = None
         for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
             date_str = fn.name[:19]
+            skip = False
+            if date_from and not date_str >= date_from:
+                skip = True
+            if date_to and not date_str < date_to:
+                skip = True
+
             dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
             unchanged = "unchanged.json" in str(fn)
             if not unchanged:
                 data = json.loads(fn.read_text())
                 if not (isinstance(data, dict) and "unchanged" in data):
-                    yield dt, False, data
+                    if not skip:
+                        yield dt, False, data
                     previous_data = data
                     continue
 
-            date_str = fn.name[:19]
-            if date_from and not date_str >= date_from:
-                continue
-            if date_to and not date_str < date_to:
-                continue
-
             # yield unchanged data
-            if with_unchanged:
+            if with_unchanged and not skip:
                 assert previous_data is not None, f"unchanged data before real data @ {dt} / {fn}"
                 yield dt, True, previous_data
 
