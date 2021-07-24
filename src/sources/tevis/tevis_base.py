@@ -66,18 +66,28 @@ class TevisBaseScraper(SourceBase):
             calendars = dict()
 
             for cnc in cnc_items:
-                for c in cnc["calendar"].split("|"):
-                    if c not in calendars:
-                        calendars[c] = (cnc["mdt"], cnc["cnc"])
+                if cnc.get("calendar"):
+                    for c in cnc["calendar"].split("|"):
+                        if c not in calendars:
+                            calendars[c] = (cnc["mdt"], cnc["cnc"])
+                else:
+                    calendars[f"mdt-{cnc['mdt']}"] = (cnc["mdt"], cnc["cnc"])
 
             for cal_id, (cal_mdt, cal_cnc) in calendars.items():
                 if cal_id == "0":
                     continue
+
+                update_mdt = True
+                if cal_id.startswith("mdt-"):
+                    # we got no calendar value, see if it's embedded in the page
+                    cal_id = self.get_tevis_location_calendar(cal_mdt, cal_cnc)
+                    update_mdt = False
+
                 for i in range(self.num_weeks):
                     year, week, _ = (now + datetime.timedelta(days=7 * i)).isocalendar()
                     data = self.get_tevis_caldiv(
                         cal_id, cal_mdt, cal_cnc, year, week,
-                        update_mdt=i == 0
+                        update_mdt=update_mdt and i == 0
                     )
 
                     data.pop("html", None)
@@ -133,11 +143,6 @@ class TevisBaseScraper(SourceBase):
 
                 cnc.append(data)
 
-            #cnc_ids = sorted(set(i["cnc"] for i in cnc))
-            #cal = str(self.get_tevis_location_calendar(mdt, cnc_ids))
-            #for c in cnc:
-            #    c["calendar"] = cal
-
         return cnc
 
     def _short_set(self, s: Optional[str]) -> Optional[str]:
@@ -153,16 +158,9 @@ class TevisBaseScraper(SourceBase):
         url = f"{self.BASE_URL}/caldiv?cal={calendar}&cnc=0&cncdata=&week={year:04d}{week:02d}&json=1&offset=1"
         return self.get_json(url)
 
-    def get_tevis_location_calendar(self, mdt: str, cnc_ids: Iterable[str]) -> str:
-        query = {
-            "mdt": mdt,
-            "select_cnc": 1,
-        }
-        # select first 'concern'
-        for i, id in enumerate(cnc_ids):
-            query[f"cnc-{id}"] = 1 if i == 0 else 0
-
-        html = self.get_url(f"{self.BASE_URL}/calendar", data=query)
+    def get_tevis_location_calendar(self, mdt: str, cnc: Iterable[str]) -> str:
+        url = f"{self.BASE_URL}/calendar?mdt={mdt}&select_cnc=1&{cnc}=1"
+        html = self.get_url(url)
 
         try:
             idx = html.index("window.tevis = window.tevis || {")
