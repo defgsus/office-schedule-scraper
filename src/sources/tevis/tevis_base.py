@@ -89,13 +89,13 @@ class TevisBaseScraper(SourceBase):
                         cal_id, cal_mdt, cal_cnc, year, week,
                         update_mdt=update_mdt and i == 0
                     )
-
-                    data.pop("html", None)
-                    #print(json.dumps(data, indent=2))
-                    #exit()
-                    if cal_id not in ret_data["calendar"]:
-                        ret_data["calendar"][cal_id] = []
-                    ret_data["calendar"][cal_id].append(data)
+                    if data:
+                        data.pop("html", None)
+                        #print(json.dumps(data, indent=2))
+                        #exit()
+                        if cal_id not in ret_data["calendar"]:
+                            ret_data["calendar"][cal_id] = []
+                        ret_data["calendar"][cal_id].append(data)
 
         return ret_data
 
@@ -150,13 +150,21 @@ class TevisBaseScraper(SourceBase):
             return s
         return "|".join(sorted(set(s.split("|"))))
 
-    def get_tevis_caldiv(self, calendar: str, mdt: str, cnc: str, year: int, week: int, update_mdt: bool) -> dict:
+    def get_tevis_caldiv(
+            self, calendar: str, mdt: str, cnc: str, year: int, week: int, update_mdt: bool
+    ) -> Optional[dict]:
         if update_mdt:
             url = f"{self.BASE_URL}/calendar?mdt={mdt}&select_cnc=1&{cnc}=1"
             self.get_url(url)
 
         url = f"{self.BASE_URL}/caldiv?cal={calendar}&cnc=0&cncdata=&week={year:04d}{week:02d}&json=1&offset=1"
-        return self.get_json(url)
+        try:
+            return self.get_json(url)
+        except ScraperError as e:
+            if "JSONDecodeError" in str(e):
+                print(f"TEVIS JSON DECODE ERROR for {url}")
+                return None
+            raise
 
     def get_tevis_location_calendar(self, mdt: str, cnc: Iterable[str]) -> str:
         url = f"{self.BASE_URL}/calendar?mdt={mdt}&select_cnc=1&{cnc}=1"
