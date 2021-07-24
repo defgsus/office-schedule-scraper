@@ -97,14 +97,14 @@ class DataSources:
                 for d in loc["dates"]:
                     if d not in dic:
                         dic[d] = dict()
-                    dic[d][s.ID + "|" + loc["location_name"]] = "X"
+                    dic[d][s.ID + "|" + loc["location_id"]] = "X"
         df = (
             pd.DataFrame(dic).transpose().sort_index()
             .replace({np.nan: ""})
         )
         print(df.to_markdown())
 
-    def dump_snapshot_table(self):
+    def dump_snapshot_tables(self):
         import pandas as pd
         import numpy as np
 
@@ -119,7 +119,7 @@ class DataSources:
                     for d in loc["dates"]:
                         if d not in dic:
                             dic[d] = dict()
-                        dic[d][s.ID + "|" + loc["location_name"][:10]] = "X"
+                        dic[d][s.ID + "|" + loc["location_id"][:10]] = "X"
 
                 df = (
                     pd.DataFrame(dic).transpose().sort_index()

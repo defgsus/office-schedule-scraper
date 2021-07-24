@@ -4,7 +4,7 @@ from .tevis_base import *
 class Amberg(TevisBaseScraper):
     ID = "amberg"
     NAME = "Stadt Amberg"
-    BASE_URL = "https://termine.amberg.de/"
+    BASE_URL = "https://termine.amberg.de"
 
 
 class Heidelberg(TevisBaseScraper):
@@ -22,4 +22,4 @@ class KreisWesel(TevisBaseScraper):
 class Mainz(TevisBaseScraper):
     ID = "mainz"
     NAME = "Stadt Mainz"
-    BASE_URL = "https://otv.mainz.de/"
+    BASE_URL = "https://otv.mainz.de"

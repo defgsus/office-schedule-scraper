@@ -17,7 +17,7 @@ class TermineReservierenBase(TevisBaseScraper):
 class BadKreuznach(TermineReservierenBase):
     ID = "badkreuznach"
     NAME = "Stadt Bad-Kreuznach"
-    BASE_URL = "https://termine-reservieren.de/termine/svkh/"
+    BASE_URL = "https://termine-reservieren.de/termine/svkh"
 
 
 class BernkastelWittlich(TermineReservierenBase):

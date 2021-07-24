@@ -83,7 +83,7 @@ def main(args):
         sources.dump_snapshot(num_weeks=args.weeks)
 
     elif args.command == "dump-snapshot-table":
-        sources.dump_snapshot_tables()#(num_weeks=args.weeks)
+        sources.dump_snapshot_table(num_weeks=args.weeks)
 
     elif args.command == "snapshot-status":
         sources.dump_snapshot_status()

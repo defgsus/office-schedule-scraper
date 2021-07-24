@@ -50,37 +50,42 @@ class TevisBaseScraper(SourceBase):
     def make_snapshot(self):
         now = self.now()
 
-        calendars = set()
-
         md_ids = self.get_tevis_md()
-        cnc_items = []
-        for md, title in md_ids.items():
-            cnc_items += self.get_tevis_cnc(md)
-
-        for cnc in cnc_items:
-            for c in cnc["calendar"].split("|"):
-                calendars.add(c)
-
-        calendars = sorted(calendars)
 
         ret_data = {
+            "v": 2,  # v2: fixed selection of location
             "md": md_ids,
-            "cnc": cnc_items,
+            "cnc": [],
             "calendar": dict(),
         }
 
-        for calendar in calendars:
-            if calendar == "0":
-                continue
-            for i in range(self.num_weeks):
-                year, week, _ = (now + datetime.timedelta(days=7 * i)).isocalendar()
-                data = self.get_tevis_caldiv(calendar, year, week)
+        for md, title in md_ids.items():
+            cnc_items = self.get_tevis_cnc(md)
+            ret_data["cnc"] += cnc_items
 
-                data.pop("html", None)
+            calendars = dict()
 
-                if calendar not in ret_data["calendar"]:
-                    ret_data["calendar"][calendar] = []
-                ret_data["calendar"][calendar].append(data)
+            for cnc in cnc_items:
+                for c in cnc["calendar"].split("|"):
+                    if c not in calendars:
+                        calendars[c] = (cnc["mdt"], cnc["cnc"])
+
+            for cal_id, (cal_mdt, cal_cnc) in calendars.items():
+                if cal_id == "0":
+                    continue
+                for i in range(self.num_weeks):
+                    year, week, _ = (now + datetime.timedelta(days=7 * i)).isocalendar()
+                    data = self.get_tevis_caldiv(
+                        cal_id, cal_mdt, cal_cnc, year, week,
+                        update_mdt=i == 0
+                    )
+
+                    data.pop("html", None)
+                    #print(json.dumps(data, indent=2))
+                    #exit()
+                    if cal_id not in ret_data["calendar"]:
+                        ret_data["calendar"][cal_id] = []
+                    ret_data["calendar"][cal_id].append(data)
 
         return ret_data
 
@@ -101,6 +106,7 @@ class TevisBaseScraper(SourceBase):
             cnc.append({
                 "md": md,
                 "mdt": form.find("input", {"name": "mdt"}).get("value"),
+                "cnc": cnc_item.get("name"),
                 "calendar": cnc_item.get("data-tevis-calendars"),
                 "location": self._short_set(cnc_item.get("data-tevis-locations")),
                 "title": form.find("a").text.strip(),
@@ -113,7 +119,9 @@ class TevisBaseScraper(SourceBase):
                 data = {
                     "md": md,
                     "mdt": mdt,
-                    "cnc_id": i.get("data-tevis-cncid"),
+                    "cnc": i.get("name"),
+                    #"cnc_id": i.get("data-tevis-cncid"),
+                    "calendar": i.get("data-tevis-calendars"),
                     "location": self._short_set(i.get("data-tevis-locations")),
                 }
                 a = i.parent.parent.find("a", {"data-html": "true"})
@@ -125,10 +133,10 @@ class TevisBaseScraper(SourceBase):
 
                 cnc.append(data)
 
-            cnc_ids = sorted(set(i["cnc_id"] for i in cnc))
-            cal = str(self.get_tevis_location_calendar(mdt, cnc_ids))
-            for c in cnc:
-                c["calendar"] = cal
+            #cnc_ids = sorted(set(i["cnc"] for i in cnc))
+            #cal = str(self.get_tevis_location_calendar(mdt, cnc_ids))
+            #for c in cnc:
+            #    c["calendar"] = cal
 
         return cnc
 
@@ -137,7 +145,11 @@ class TevisBaseScraper(SourceBase):
             return s
         return "|".join(sorted(set(s.split("|"))))
 
-    def get_tevis_caldiv(self, calendar: str, year, week) -> dict:
+    def get_tevis_caldiv(self, calendar: str, mdt: str, cnc: str, year: int, week: int, update_mdt: bool) -> dict:
+        if update_mdt:
+            url = f"{self.BASE_URL}/calendar?mdt={mdt}&select_cnc=1&{cnc}=1"
+            self.get_url(url)
+
         url = f"{self.BASE_URL}/caldiv?cal={calendar}&cnc=0&cncdata=&week={year:04d}{week:02d}&json=1&offset=1"
         return self.get_json(url)
 
@@ -155,12 +167,17 @@ class TevisBaseScraper(SourceBase):
         try:
             idx = html.index("window.tevis = window.tevis || {")
         except ValueError:
-            # some locations required registration before showing the calendar
+            # some locations require registration before showing the calendar
             if "Eingabe der persönlichen Daten für den Termin" in html:
                 return "0"
             if "Der ausgewählte Kalender existiert nicht oder kann nicht ausgewählt werden." in html:
                 return "0"
-
+            if ("Kein gültiger Mandant gefunden" in html or "Es wurde kein Mandantor empfangen" in html):
+                print("TEVIS SESSION ERROR or something")
+                return "0"
+            if "Es ist ein Datenbank-Fehler aufgetreten" in html:
+                print("TEVIS DATABASE ERROR")
+                return "0"
             print(html)
             raise ValueError(f"Missing tevis script data for mdt '{mdt}'")
         script = html[idx+31:]
