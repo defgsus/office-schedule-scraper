@@ -70,7 +70,19 @@ class SourceBase:
         return cls.BASE_URL
 
     @classmethod
-    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
+    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
+        data = cls._convert_snapshot(dt, data)
+        if not data:
+            return data
+        for i, loc in enumerate(data):
+            data[i] = {
+                "office_id": "%s-%s" % (cls.ID, loc["location_id"]),
+                **loc
+            }
+        return data
+
+    @classmethod
+    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
         raise NotImplementedError
 
     @classmethod

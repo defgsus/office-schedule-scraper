@@ -14,22 +14,21 @@ class TevisBaseScraper(SourceBase):
     SCRAPER_TYPE = "tevis"
 
     @classmethod
-    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
+    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
         if not data["cnc"]:
             return None
 
-        md_2_cal_ids = dict()
-        cal_id_md_2_name = dict()
         cal_id_2_name = dict()
         for c in data["cnc"]:
-            for c_id in c["calendar"].split("|"):
-                if not c.get("md"):
-                    # old snapshot version before adding md
-                    cal_id_2_name[c_id] = c.get("title", c_id)
-                else:
-                    name = data["md"][c["md"]]
-                    if c_id not in cal_id_2_name:
-                        cal_id_2_name[c_id] = f"{name} / {c.get('title')}"
+            if c.get("calendar"):
+                for c_id in c["calendar"].split("|"):
+                    if not c.get("md"):
+                        # old snapshot version before adding md
+                        cal_id_2_name[c_id] = c.get("title", c_id)
+                    else:
+                        name = data["md"][c["md"]]
+                        if c_id not in cal_id_2_name:
+                            cal_id_2_name[c_id] = f"{name} / {c.get('title')}"
 
         ret_data = []
         for cal_id, cals in data["calendar"].items():
@@ -46,7 +45,7 @@ class TevisBaseScraper(SourceBase):
 
             ret_data.append({
                 "location_id": cal_id,
-                "location_name": cal_id_2_name[cal_id],
+                "location_name": cal_id_2_name.get(cal_id, cal_id),
                 "dates": dates,
             })
         return ret_data

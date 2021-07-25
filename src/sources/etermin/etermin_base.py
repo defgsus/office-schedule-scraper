@@ -22,7 +22,7 @@ class ETerminBase(SourceBase):
         return cls.ET_URL.lower()
 
     @classmethod
-    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
+    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
         # print(json.dumps(data, indent=2))
 
         #cal_ids = sorted(set(cal["id"] for cal in data["calendars"]))

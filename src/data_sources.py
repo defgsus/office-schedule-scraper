@@ -284,15 +284,15 @@ class DataSources:
                     df2 = df2.resample(resample).sum()
                     df2 = pd.DataFrame({
                         "date": df2.index,
-                        "source_id": source_id,
-                        "location_id": df2["location_id"],
-                        "location_name": loc_name,
+                        #"source_id": source_id,
+                        #"location_id": df2["location_id"],
+                        #"location_name": loc_name,
                         "appointments": df2["appointments"],
                         "cancellations": df2["cancellations"],
                         "changed": df2["changed"],
                     }).set_index("date")
                 if df2.shape[0] > 1:
-                    print("\n---------", df2["source_id"][0], "/", df2["location_id"][0], "/", loc_name, "---------\n")
+                    print("\n---------", source_id, "|", loc_name, "---------\n")
                     df2.drop(["location_name", "location_id", "source_id"], inplace=True, axis=1, errors="ignore")
                     print(df2.to_string(max_rows=max(1, df.shape[0])))
 
@@ -308,7 +308,13 @@ class DataSources:
                     date_from=self.date_from, date_to=self.date_to,
                     with_unchanged=False
             )):
-                data = self.convert_snapshot(s, dt, snapshot_data)
+                try:
+                    data = self.convert_snapshot(s, dt, snapshot_data)
+                except Exception as e:
+                    new_e = e.__class__(f"in {s.ID}@{dt}: {e}")
+                    new_e.__traceback__ = e.__traceback__
+                    raise new_e
+
                 if data is None:
                     continue
 
@@ -345,6 +351,7 @@ class DataSources:
                     if idx == 0 or with_zeros or appointments or cancellations or has_changed:
                         ret_data.append({
                             "source_id": s.ID,
+                            "office_id": location["office_id"],
                             "location_id": location["location_id"],
                             "location_name": location["location_name"],
                             "date": dt,

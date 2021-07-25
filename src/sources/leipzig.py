@@ -57,7 +57,7 @@ class Leipzig(SourceBase):
         return ret_data
 
     @classmethod
-    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
+    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
         ret_data = []
         for loc in data:
             dates = []
