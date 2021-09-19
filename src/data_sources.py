@@ -41,6 +41,12 @@ class DataSources:
 
         self.source_classes.sort(key=lambda s: s.ID)
 
+    @classmethod
+    def create(cls, source_id: str, num_weeks: int = 4, use_cache: bool = False) -> SourceBase:
+        return installed_sources[source_id](
+            num_weeks=num_weeks, use_cache=use_cache
+        )
+
     def dump_list(self):
         import pandas as pd
         rows = []
@@ -202,6 +208,10 @@ class DataSources:
             return unchanged
 
     def dump_snapshot_status(self):
+        df = self.get_snapshot_status()
+        print(df.to_string(max_rows=df.shape[0]))#, max_cols=df.shape[1]))
+
+    def get_snapshot_status(self):
         import pandas as pd
         sources = self.sources()
         rows = []
@@ -228,7 +238,7 @@ class DataSources:
                 "errors": num_errors,
             })
         df = pd.DataFrame(rows).set_index("source_id").sort_index()
-        print(df.to_string(max_rows=df.shape[0]))#, max_cols=df.shape[1]))
+        return df
 
     def dump_convert_snapshots(self):
         data = self.convert_snapshots()
@@ -369,8 +379,6 @@ class DataSources:
         data = s.convert_snapshot(dt, snapshot_data)
         if data is None:
             return data
-        for row in data:
-            row["office_id"] = f"{s.ID}-{row['location_id']}"
         return data
 
     def dump_changes_status(self):

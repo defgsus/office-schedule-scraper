@@ -17,18 +17,56 @@ class ImpfThueringen(SourceBase):
     BASE_URL = "https://www.impfen-thueringen.de/terminvergabe"
 
     @classmethod
-    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
         ret_data = []
         for row in data:
             ret_data.append({
                 "location_id": cls.to_id(row["loc"]),
                 "location_name": row["loc_name"],
                 "dates": [
-                    datetime.datetime.strptime(d[0], "%Y-%m-%d %H:%M")
+                    (
+                        datetime.datetime.strptime(d[0], "%Y-%m-%d %H:%M")
+                        if as_datetime else d[0] + ":00"
+                    )
                     for d in row["dates"]
                 ]
             })
         return ret_data
+
+    @classmethod
+    def make_export_table(cls, data_list: List[Tuple[datetime.datetime, dict]], all_dates: List[str]):
+        """
+        Compress the free dates to 15 minutes snapshots because of the
+        enormous amount of data
+        """
+        date_dict = {}
+        for dt, locations in data_list:
+            dt = dt.replace(minute=(dt.minute // 15) * 15, second=0, microsecond=0)
+            for loc in locations:
+                key = (dt, loc["source_id"], loc["location_id"])
+                if key not in date_dict:
+                    date_dict[key] = set()
+                for d in loc["dates"]:
+                    date_dict[key].add(d)
+
+        rows = []
+        for (dt, source_id, location_id), dates in date_dict.items():
+            rows.append(
+                [
+                    dt,
+                    source_id,
+                    location_id,
+                ] + [
+                    "1" if date in dates else ""
+                    for date in all_dates
+                ]
+            )
+        return rows
 
     @classmethod
     def compare_snapshot_location(

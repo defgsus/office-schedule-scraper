@@ -57,15 +57,23 @@ class Leipzig(SourceBase):
         return ret_data
 
     @classmethod
-    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
         ret_data = []
         for loc in data:
             dates = []
             for day in loc["days"]:
                 for ti in day["times"]:
-                    dates.append(datetime.datetime.strptime(
-                        day["date"] + ti, "%Y-%m-%d%H:%M"
-                    ))
+                    if as_datetime:
+                        dates.append(datetime.datetime.strptime(
+                            day["date"] + ti, "%Y-%m-%d%H:%M"
+                        ))
+                    else:
+                        dates.append(day["date"] + " " + ti + ":00")
             ret_data.append({
                 "location_id": loc["id"],
                 "location_name": loc["name"],

@@ -8,7 +8,7 @@ import unicodedata
 import re
 import time
 from copy import deepcopy
-from typing import Tuple, List, Dict, Type, Optional, Union, Generator, Iterable
+from typing import Tuple, List, Dict, Type, Optional, Union, Generator, Iterable, Set
 
 import requests
 import bs4
@@ -62,28 +62,60 @@ class SourceBase:
 
         self.new_session()
 
-    def make_snapshot(self):
-        raise NotImplementedError
-
     @classmethod
     def index_url(cls) -> str:
         return cls.BASE_URL
 
     @classmethod
-    def convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
-        data = cls._convert_snapshot(dt, data)
+    def convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
+        data = cls._convert_snapshot(dt, data, as_datetime=as_datetime)
         if not data:
             return data
         for i, loc in enumerate(data):
             data[i] = {
+                "source_id": cls.ID,
                 "office_id": "%s-%s" % (cls.ID, loc["location_id"]),
                 **loc
             }
         return data
 
-    @classmethod
-    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
+    # ----------- override these ------------
+
+    def make_snapshot(self):
         raise NotImplementedError
+
+    @classmethod
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
+        raise NotImplementedError
+
+    @classmethod
+    def make_export_table(cls, data_list: List[Tuple[datetime.datetime, dict]], all_dates: List[str]):
+        rows = []
+        for dt, locations in data_list:
+            for loc in locations:
+                rows.append(
+                    [
+                        dt,
+                        str(loc["source_id"]),
+                        str(loc["location_id"]),
+                    ] + [
+                        "1" if date in loc["dates"] else ""
+                        for date in all_dates
+                    ]
+                )
+        return rows
+
+    # ---------------------------------------
 
     @classmethod
     def compare_snapshot_location(
@@ -114,26 +146,63 @@ class SourceBase:
             changed = sorted_dates != sorted_prev_dates
         return appointments, cancellations, changed
 
+    @classmethod
+    def get_raw_snapshot(
+            cls,
+            snapshot_date_wildcard: str
+    ) -> Tuple[Optional[datetime.datetime], Optional[Union[list, dict]]]:
+        if not snapshot_date_wildcard.endswith("*"):
+            snapshot_date_wildcard += "*"
+        dt, filename = None, None
+        for fn in sorted((cls.SNAPSHOT_DIR / cls.ID).glob(f"*/{snapshot_date_wildcard}.json")):
+            date_str = fn.name[:19]
+            dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
+            filename = fn
+        if not dt:
+            return None, None
+
+        unchanged = "unchanged.json" in str(filename)
+        if unchanged:
+            all_files = sorted((cls.SNAPSHOT_DIR / cls.ID).glob(f"*/*.json"))
+            idx = all_files.index(filename)
+            while idx and "unchanged.json" in str(all_files[idx]):
+                idx -= 1
+            filename = all_files[idx]
+            if "unchanged.json" in str(filename):
+                return None, None
+
+        data = json.loads(filename.read_text())
+        return dt, data
+
+    @classmethod
+    def get_snapshot(cls, snapshot_date_wildcard: str) -> Tuple[Optional[datetime.datetime], Optional[dict]]:
+        dt, data = cls.get_raw_snapshot(snapshot_date_wildcard)
+        if data:
+            data = cls.convert_snapshot(dt, data)
+        return dt, data
+
+    @classmethod
     def iter_snapshot_filenames(
-            self,
+            cls,
             date_from: Optional[str] = None,
             date_to: Optional[str] = None,
     ) -> Generator[Tuple[datetime.datetime, Path], None, None]:
-        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
+        for fn in sorted((cls.SNAPSHOT_DIR / cls.ID).glob("*/*.json")):
             date_str = fn.name[:19]
             if date_from and not date_str >= date_from:
                 continue
             if date_to and not date_str < date_to:
-                continue
+                break
             dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
             yield dt, fn
 
+    @classmethod
     def iter_error_filenames(
-            self,
+            cls,
             date_from: Optional[str] = None,
             date_to: Optional[str] = None,
     ) -> Generator[Tuple[datetime.datetime, Path], None, None]:
-        for fn in (self.ERROR_DIR / self.ID).glob("*/*.json"):
+        for fn in (cls.ERROR_DIR / cls.ID).glob("*/*.json"):
             date_str = fn.name[:19]
             if date_from and not date_str >= date_from:
                 continue
@@ -142,20 +211,27 @@ class SourceBase:
             dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
             yield dt, fn
 
+    @classmethod
     def iter_snapshot_data(
-            self,
+            cls,
             date_from: Optional[str] = None,
             date_to: Optional[str] = None,
-            with_unchanged: bool = False
+            with_unchanged: bool = False,
+            verbose: bool = False,
     ) -> Generator[Tuple[datetime.datetime, bool, Union[dict, list]], None, None]:
         previous_data = None
-        for fn in sorted((self.SNAPSHOT_DIR / self.ID).glob("*/*.json")):
+        iterable = sorted((cls.SNAPSHOT_DIR / cls.ID).glob("*/*.json"))
+        if verbose:
+            from tqdm import tqdm
+            iterable = tqdm(iterable)
+
+        for fn in iterable:
             date_str = fn.name[:19]
             skip = False
             if date_from and not date_str >= date_from:
                 skip = True
             if date_to and not date_str < date_to:
-                skip = True
+                break
 
             dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
             unchanged = "unchanged.json" in str(fn)
@@ -171,6 +247,57 @@ class SourceBase:
             if with_unchanged and not skip:
                 assert previous_data is not None, f"unchanged data before real data @ {dt} / {fn}"
                 yield dt, True, previous_data
+
+    @classmethod
+    def iter_converted_data(
+            cls,
+            date_from: Optional[str] = None,
+            date_to: Optional[str] = None,
+            with_unchanged: bool = False,
+            verbose: bool = False,
+    ) -> Generator[Tuple[datetime.datetime, bool, List[dict]], None, None]:
+        for dt, unchanged, snapshot_data in cls.iter_snapshot_data(
+                date_from=date_from, date_to=date_to, with_unchanged=with_unchanged,
+                verbose=verbose,
+        ):
+            data = cls.convert_snapshot(dt, snapshot_data)
+            if data:
+                yield dt, unchanged, data
+
+    @classmethod
+    def get_dataframe(
+            cls,
+            date_from: Optional[str] = None,
+            date_to: Optional[str] = None,
+            with_unchanged: bool = False,
+            verbose: bool = False,
+    ):
+        import pandas as pd
+        import numpy as np
+        rows = []
+        for dt, unchanged, locations in cls.iter_converted_data(
+                date_from=date_from,
+                date_to=date_to,
+                with_unchanged=with_unchanged,
+                verbose=verbose,
+        ):
+            for loc in locations:
+                rows.append({
+                    "date": dt,
+                    "source_id": str(loc["source_id"]),
+                    "location_id": str(loc["location_id"]),
+                    **{str(date): 1 for date in loc["dates"]}
+                })
+        df = (
+            pd.DataFrame(rows)
+            .set_index(["date", "source_id", "location_id"])
+            .sort_index(axis=1)
+            .replace(np.nan, 0)
+        )
+        for column in df.columns:
+            if df[column].dtype == 'float64':
+                df[column] = df[column].astype(np.int)
+        return df
 
     # ---- below are all helpers for derived classes ----
 

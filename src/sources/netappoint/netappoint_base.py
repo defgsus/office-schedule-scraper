@@ -28,14 +28,22 @@ class NetAppointBase(SourceBase):
         return f"{cls.BASE_URL}/index.php?company={cls.NA_COMPANY}"
 
     @classmethod
-    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
         ret_data = []
         for row in data:
             ret_data.append({
                 "location_id": cls.to_id(row["location"]),
                 "location_name": row["location"],
                 "dates": [
-                    datetime.datetime.strptime(d, "%Y-%m-%d %H:%M")
+                    (
+                        datetime.datetime.strptime(d[0], "%Y-%m-%d %H:%M")
+                        if as_datetime else d + ":00"
+                    )
                     for d in row["dates"]
                 ]
             })

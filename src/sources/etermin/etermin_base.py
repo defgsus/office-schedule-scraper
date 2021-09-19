@@ -22,7 +22,12 @@ class ETerminBase(SourceBase):
         return cls.ET_URL.lower()
 
     @classmethod
-    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> List[dict]:
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> List[dict]:
         # print(json.dumps(data, indent=2))
 
         #cal_ids = sorted(set(cal["id"] for cal in data["calendars"]))
@@ -58,11 +63,16 @@ class ETerminBase(SourceBase):
 
         ret_data = []
         for cal in data["calendars"]:
-            ret_data.append({
+            row = {
                 "location_id": cal["id"],
                 "location_name": cal_id_2_name[cal["id"]],
-                "dates": [datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S") for d in cal["dates"]],
-            })
+            }
+            if as_datetime:
+                row["dates"] = [datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S") for d in cal["dates"]]
+            else:
+                row["dates"] = [d.replace("T", " ") for d in cal["dates"]]
+
+            ret_data.append(row)
         return ret_data
 
     def make_snapshot(self):

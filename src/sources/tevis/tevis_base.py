@@ -14,7 +14,12 @@ class TevisBaseScraper(SourceBase):
     SCRAPER_TYPE = "tevis"
 
     @classmethod
-    def _convert_snapshot(cls, dt: datetime.datetime, data: Union[dict, list]) -> Optional[List[dict]]:
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
         if not data["cnc"]:
             return None
 
@@ -41,7 +46,8 @@ class TevisBaseScraper(SourceBase):
                     start_date = datetime.datetime.strptime(day, "%Y%m%d")
                     #start_date = datetime.datetime(int(cal["year"]), int(cal["month"]), int(cal["day"]))
                     for minutes in valid:
-                        dates.append(start_date + datetime.timedelta(minutes=int(minutes)))
+                        date = start_date + datetime.timedelta(minutes=int(minutes))
+                        dates.append(date if as_datetime else str(date))
 
             ret_data.append({
                 "location_id": cal_id,
