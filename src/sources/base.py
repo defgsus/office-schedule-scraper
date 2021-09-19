@@ -99,6 +99,27 @@ class SourceBase:
         raise NotImplementedError
 
     @classmethod
+    def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        raise NotImplementedError
+
+    # ---------------------------------------
+
+    @classmethod
+    def convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        """
+        Returns dictionary with all location_ids and associated info
+
+        :param data: the original snapshot data
+        """
+        return {
+            str(location_id): {
+                "location_name": loc.get("name") or "-",
+                "services": sorted(loc.get("services") or []),
+            }
+            for location_id, loc in cls._convert_snapshot_meta(data).items()
+        }
+
+    @classmethod
     def make_export_table(cls, data_list: List[Tuple[datetime.datetime, dict]], all_dates: List[str]):
         rows = []
         for dt, locations in data_list:
@@ -114,8 +135,6 @@ class SourceBase:
                     ]
                 )
         return rows
-
-    # ---------------------------------------
 
     @classmethod
     def compare_snapshot_location(

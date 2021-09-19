@@ -75,6 +75,24 @@ class ETerminBase(SourceBase):
             ret_data.append(row)
         return ret_data
 
+    @classmethod
+    def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        #print(json.dumps(data["services"], indent=2))
+        #print(json.dumps(data["calendars"], indent=2))
+        #exit()
+        ret = {}
+        for s in data["services"]:
+            if s.get("calendar_ids"):
+                for location_ids in s["calendar_ids"]:
+                    for location_id in location_ids.split(","):
+                        if location_id not in ret:
+                            ret[location_id] = {
+                                "name": s.get("group_name"),
+                                "services": set()
+                            }
+                        ret[location_id]["services"].add(s["name"])
+        return ret
+
     def make_snapshot(self):
         services = self.et_get_services()
 
@@ -85,6 +103,7 @@ class ETerminBase(SourceBase):
         groups = dict()
 
         for s in services:
+            print(json.dumps(s, indent=2))
             if s.get("s"):
                 group_id, service_id, name = s["sgid"], s["sid"], s["s"]
                 duration = s.get("duration")
@@ -92,6 +111,7 @@ class ETerminBase(SourceBase):
                     "group_id": group_id,
                     "service_id": service_id,
                     "name": name,
+                    "group_name": s.get("sg"),
                     "duration": duration,
                 })
                 # pick service with smallest duration per group

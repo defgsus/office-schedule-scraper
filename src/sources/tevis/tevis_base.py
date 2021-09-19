@@ -56,6 +56,24 @@ class TevisBaseScraper(SourceBase):
             })
         return ret_data
 
+    @classmethod
+    def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        ret = dict()
+        for c in data["cnc"]:
+            if c.get("calendar"):
+                for location_id in c["calendar"].split("|"):
+                    if location_id not in ret:
+                        ret[location_id] = {
+                            "name": "",
+                            "services": set(),
+                        }
+                    if not ret[location_id]["name"]:
+                        if c.get("md"):
+                            ret[location_id]["name"] = data["md"][c["md"]]
+                    ret[location_id]["services"].add(c.get("title") or c["name"])
+
+        return ret
+
     def make_snapshot(self):
         now = self.now()
 

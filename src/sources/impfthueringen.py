@@ -39,6 +39,17 @@ class ImpfThueringen(SourceBase):
         return ret_data
 
     @classmethod
+    def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        #print(json.dumps(data, indent=2))
+        #exit()
+        ret = {}
+        for loc in data:
+            ret[loc["loc"]] = {
+                "name": loc["loc_name"]
+            }
+        return ret
+
+    @classmethod
     def make_export_table(cls, data_list: List[Tuple[datetime.datetime, dict]], all_dates: List[str]):
         """
         Compress the free dates to 15 minutes snapshots because of the

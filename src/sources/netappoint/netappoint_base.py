@@ -49,6 +49,13 @@ class NetAppointBase(SourceBase):
             })
         return ret_data
 
+    @classmethod
+    def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        return {
+            cls.to_id(row["location"]): {"name": row["location"]}
+            for row in data
+        }
+
     def full_url(self, url_part: str) -> str:
         return self.BASE_URL.split("/")[0] + "//" + self.BASE_URL.split("/")[2] + url_part
 

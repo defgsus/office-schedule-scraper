@@ -81,6 +81,17 @@ class Leipzig(SourceBase):
             })
         return ret_data
 
+    @classmethod
+    def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        #print(json.dumps(data, indent=2))
+        #exit()
+        ret = {}
+        for loc in data:
+            ret[loc["id"]] = {
+                "name": loc["name"]
+            }
+        return ret
+
 
 class EkolSession:
     """
