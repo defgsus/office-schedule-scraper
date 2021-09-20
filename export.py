@@ -1,5 +1,6 @@
 import os
 import csv
+import json
 import glob
 import tarfile
 import datetime
@@ -59,11 +60,19 @@ class Exporter:
         self.date_from = self.date_from.replace(hour=0, minute=0, second=0, microsecond=0)
         self.export_raw_path = Path(export_raw_path)
         self.export_path = Path(export_path)
+        self.meta_data = dict()
 
     def export(self):
         """
         Exports only full iso-weeks from the raw snapshots to canonical csv files
         """
+        meta_data_filename = self.export_path / "metadata.json"
+        if meta_data_filename.exists():
+            with open(meta_data_filename) as fp:
+                self.meta_data = json.load(fp)
+        else:
+            self.meta_data = dict()
+
         for source_idx, source in enumerate(self.sources.source_classes):
             source_description = f"{source_idx+1}/{len(self.sources.source_classes)} {source.ID}"
 
@@ -86,6 +95,13 @@ class Exporter:
                         last_week_data.clear()
                     if do_export:
                         last_week_data.append((dt, data))
+
+        self._sort_meta_data()
+        #print(self.meta_data["lramuenchenefa"])
+
+        print(f"storing {meta_data_filename}")
+        with open(meta_data_filename, "w") as fp:
+            json.dump(self.meta_data, fp, indent=2)
 
     def _export_week(
             self,
@@ -114,11 +130,21 @@ class Exporter:
             except Exception as e:
                 print(f"{source_description}: ERROR converting {source.ID} @ {dt}: {type(e).__name__}: {e}")
                 continue
+
             if locations:
                 location_data_list.append((dt, locations))
                 for loc in locations:
                     loc["dates"] = set(str(d) for d in loc["dates"])
                     all_dates |= loc["dates"]
+
+            try:
+                meta_data = source.convert_snapshot_meta(snapshot_data)
+            except Exception as e:
+                meta_data = None
+                print(f"{source_description}: ERROR converting metadata {source.ID} @ {dt}: {type(e).__name__}: {e}")
+
+            if meta_data:
+                self._merge_meta_data(source, meta_data)
 
         if not location_data_list:
             print(f"{source_description}: NO DATES in {source.ID} {iso_week}")
@@ -143,6 +169,47 @@ class Exporter:
             if filename.exists():
                 os.remove(filename)
             raise
+
+    def _merge_meta_data(self, source: Type[SourceBase], data: dict):
+        for location_id, loc in data.items():
+            if source.ID not in self.meta_data:
+                self.meta_data[source.ID] = {
+                    "name": source.NAME,
+                    "scraper": source.SCRAPER_TYPE,
+                    "url": source.index_url(),
+                    "locations": dict(),
+                }
+            source_data = self.meta_data[source.ID]
+            source_locations = source_data["locations"]
+            if location_id not in source_locations:
+                source_data["locations"][location_id] = {
+                    "location_name": loc.get("location_name") or None,
+                    "services": set(loc.get("services") or []),
+                }
+            else:
+                source_location = source_locations[location_id]
+                if loc.get("name") and not source_location["name"]:
+                    source_location["name"] = loc["name"]
+
+                if not isinstance(source_location["services"], set):
+                    source_location["services"] = set(source_location["services"])
+                for s in (loc.get("services") or []):
+                    source_location["services"].add(s)
+
+    def _sort_meta_data(self):
+        meta_data = {}
+        for source_id in sorted(self.meta_data.keys()):
+            source = self.meta_data[source_id]
+            source["locations"] = {
+                location_id: {
+                    **source["locations"][location_id],
+                    "services": sorted(source["locations"][location_id]["services"])
+                }
+                for location_id in sorted(source["locations"])
+            }
+            meta_data[source_id] = source
+
+        self.meta_data = meta_data
 
     def export_compressed(self):
         # iter through every 'year/isoweek/' directory
