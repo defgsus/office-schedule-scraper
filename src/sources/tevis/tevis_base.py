@@ -58,8 +58,10 @@ class TevisBaseScraper(SourceBase):
 
     @classmethod
     def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        print(json.dumps(data, indent=2))
         ret = dict()
         for c in data["cnc"]:
+            print(c)
             if c.get("calendar"):
                 for location_id in c["calendar"].split("|"):
                     if location_id not in ret:
@@ -72,6 +74,8 @@ class TevisBaseScraper(SourceBase):
                             ret[location_id]["name"] = data["md"][c["md"]]
                     ret[location_id]["services"].add(c.get("title") or c["name"])
 
+        print(json.dumps(ret, indent=2))
+        exit()
         return ret
 
     def make_snapshot(self):
@@ -144,7 +148,7 @@ class TevisBaseScraper(SourceBase):
                 "md": md,
                 "mdt": form.find("input", {"name": "mdt"}).get("value"),
                 "cnc": cnc_item.get("name"),
-                "calendar": cnc_item.get("data-tevis-calendars"),
+                "calendar": cnc_item.get("data-tevis-calendars") or cnc_item.get("data-tevis-calendar"),
                 "location": self._short_set(cnc_item.get("data-tevis-locations")),
                 "title": form.find("a").text.strip(),
             })
@@ -158,7 +162,7 @@ class TevisBaseScraper(SourceBase):
                     "mdt": mdt,
                     "cnc": i.get("name"),
                     #"cnc_id": i.get("data-tevis-cncid"),
-                    "calendar": i.get("data-tevis-calendars"),
+                    "calendar": i.get("data-tevis-calendars") or i.get("data-tevis-calendar"),
                     "location": self._short_set(i.get("data-tevis-locations")),
                 }
                 a = i.parent.parent.find("a", {"data-html": "true"})

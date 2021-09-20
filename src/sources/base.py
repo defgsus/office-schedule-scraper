@@ -113,7 +113,7 @@ class SourceBase:
         """
         return {
             str(location_id): {
-                "location_name": loc.get("name") or "-",
+                "location_name": loc.get("name") or None,
                 "services": sorted(loc.get("services") or []),
             }
             for location_id, loc in cls._convert_snapshot_meta(data).items()
