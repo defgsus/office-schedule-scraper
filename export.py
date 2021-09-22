@@ -183,7 +183,7 @@ class Exporter:
             source_locations = source_data["locations"]
             if location_id not in source_locations:
                 source_data["locations"][location_id] = {
-                    "location_name": loc.get("location_name") or None,
+                    "name": loc.get("name") or None,
                     "services": set(loc.get("services") or []),
                 }
             else:
