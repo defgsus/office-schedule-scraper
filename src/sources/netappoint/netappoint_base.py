@@ -87,14 +87,34 @@ class NetAppointBase(SourceBase):
             #   otherwise the day-select-screen comes up again
             self.session.cookies.clear()
 
-            for day in days:
-                day_times += self.get_na_day_times(day["url"], day["date"])
+            if days:
+                start_date = days[0]["date"]
+                end_date = datetime.date.today() + datetime.timedelta(days=self.num_weeks*7)
+                url = self._build_url_template(days[0]["url"], start_date)
+                date = start_date
+                while date <= end_date:
+                    day_url = url % {"year": date.year, "month": date.month, "day": date.day}
+                    day_times += self.get_na_day_times(day_url, date)
+
+                    date = date + datetime.timedelta(days=1)
 
             ret_data.append({
                 "location": location["name"],
                 "dates": day_times
             })
         return ret_data
+
+    def _build_url_template(self, url: str, date: datetime.date):
+        year_str = f"year={date.year}"
+        month_str = f"month={date.month}"
+        day_str = f"day={date.day}"
+        assert year_str in url, f"{year_str} missing in url {url}"
+        assert month_str in url, f"{year_str} missing in url {url}"
+        assert day_str in url, f"{year_str} missing in url {url}"
+        url = url.replace(year_str, "year=%(year)s")
+        url = url.replace(month_str, "month=%(month)s")
+        url = url.replace(day_str, "day=%(day)s")
+        return url
 
     def get_na_cases(self) -> Tuple[dict, str]:
         url = self.index_url()
@@ -172,7 +192,7 @@ class NetAppointBase(SourceBase):
         soup = self.get_html_soup(url)
         table = soup.find("table", {"class": "nat_timeslist"})
         if not table:
-            print(soup.find("table").attrs)
+            #print(soup)
             return []
 
         day_times = []
