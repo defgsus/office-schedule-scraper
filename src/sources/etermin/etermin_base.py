@@ -139,28 +139,42 @@ class ETerminBase(SourceBase):
                             s.setdefault("calendar_ids", set())
                             s["calendar_ids"].add(cal["calendarid"])
 
-                    timeslot_days = self.et_get_time_slot_days(
-                        date=now.date(),
-                        calendar_id=cal["calendarid"], service_id=group["service_id"],
-                        duration=group["duration"]
-                    )
-                    for day in timeslot_days:
-                        if day.get("available"):
-                            timeslots = self.et_get_time_slots(
-                                date=day["start"][:10],
-                                calendar_id=cal["calendarid"], service_id=group["service_id"],
-                                duration=group["duration"]
-                            )
-                            for ts in timeslots:
-                                if ts["calendarid"] not in calendar_timeslots:
-                                    calendar_timeslots[ts["calendarid"]] = {
-                                        "name": ts["calendarname"],
-                                        "dates": set(),
-                                    }
-                                calendar_timeslots[ts["calendarid"]]["dates"].add(
-                                    ts["start"]
+                    today = now.date()
+                    #next_month = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+                    query_date = today
+                    max_date = str(query_date)
+
+                    for i in range(3):
+                        timeslot_days = self.et_get_time_slot_days(
+                            date=query_date,
+                            calendar_id=cal["calendarid"], service_id=group["service_id"],
+                            duration=group["duration"]
+                        )
+                        for day in timeslot_days:
+                            max_date = max(max_date, day["start"][:10])
+
+                            if day.get("available"):
+                                timeslots = self.et_get_time_slots(
+                                    date=day["start"][:10],
+                                    calendar_id=cal["calendarid"], service_id=group["service_id"],
+                                    duration=group["duration"]
                                 )
-                                # print(ts["start"], ts["cap"], ts["available"], ts["f"], ts["calendarid"])
+                                for ts in timeslots:
+                                    if ts["calendarid"] not in calendar_timeslots:
+                                        calendar_timeslots[ts["calendarid"]] = {
+                                            "name": ts["calendarname"],
+                                            "dates": set(),
+                                        }
+                                    calendar_timeslots[ts["calendarid"]]["dates"].add(
+                                        ts["start"]
+                                    )
+                                    # print(ts["start"], ts["cap"], ts["available"], ts["f"], ts["calendarid"])
+
+                        if (datetime.datetime.strptime(max_date, "%Y-%m-%d").date() - today).days < self.num_weeks * 7:
+                            # shift to next month
+                            query_date = (query_date.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+                        else:
+                            break
 
         ret_data["calendars"] = [
             {
@@ -202,7 +216,7 @@ class ETerminBase(SourceBase):
     def et_get_time_slots(self, date: datetime.date, calendar_id: str, service_id: str, duration: int) -> List[dict]:
         return self.get_json(
             f"{self.BASE_URL}/api/timeslots?date={date}&serviceid={service_id}&capacity=1&caching=false"
-            f"&duration={duration}&cluster=false&slottype=0&fillcalendarstrategy=0&showavcap=true&appfuture=14"
+            f"&duration={duration}&cluster=false&slottype=0&fillcalendarstrategy=0&showavcap=true&appfuture={self.num_weeks*7}"
             f"&appdeadline=0&msdcm=0&appdeadlinewm=0&tz=W.%20Europe%20Standard%20Time&tzaccount=W.%20Europe%20Standard%20Time"
             f"&calendarid={calendar_id}"
         )
