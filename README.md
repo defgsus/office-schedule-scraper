@@ -17,7 +17,7 @@ Anyways! Now we have this internet thing going and it's not so hard to
 track the development of the office schedules through time. From that
 data we can infer:
 
-- the busyness of the offices over time (e.g. barking at foreigners)
+- the business of the offices over time (e.g. barking at foreigners)
 - the desire of citizens to plan ahead (e.g. not taking the first
 free slot but one in 4 weeks)
 - the most popular time of day for appointments
@@ -27,11 +27,9 @@ free slot but one in 4 weeks)
 And all of that for a couple of different cities for comparison. 
 As stated earlier: data of enormous importance!
 
-Data scraping started at around 2021-07-09 
-
-I'd like to put the scraped data online like in the
-[free parking lots data](https://github.com/defgsus/parking-data/) repository,
-but it's going to be a bit more complex, not fitting nicely in CSV tables, i presume.
+Data scraping started at around 2021-07-09 and is weekly exported
+to the [office-schedule-data](https://github.com/defgsus/office-schedule-scraper/)
+repository.
 
 To collect data yourself:
 
@@ -51,8 +49,8 @@ python scraper.py snapshot -w <X> -p <Y>
 
 Which leads to a lot of JSON files in the `snapshot` directory. 
 
-Once a couple of other appointment interfaces are implemented i'll think
-of a way to unify the scraped data..
+Using [export.py](export.py), the data will be exported to compressed
+bunches of CSV files as described in [office-schedule-data](https://github.com/defgsus/office-schedule-scraper/).
 
 
 ### List of implemented websites
@@ -177,9 +175,8 @@ The scraped interfaces which are used by most websites:
 
 At each **snapshot** all **available dates** are recorded for each listed 
 office department. The **tevis** system shows the available dates for
-the next **N** full weeks, where **N** is set to **8** in my recording job.
-The **etermin** system is asked for the next **N** * 7 days.
-The **netappoint** system usually shows the next **28 days** and not more.
+the next **N** full weeks, where **N** is set to **6** in my recording job.
+The **etermin** and **netappoint** system is asked for the next **N** * 7 days.
  
 Here's an example for one day from the 
 [website of **Bonn**](https://onlinetermine.bonn.de/index.php?company=stadtbonn):
@@ -257,14 +254,15 @@ calculate the correct number of appointments for each day.
 
 However, when comparing
 two successive snapshots, it's possible to count new appointments or 
-cancellations quite robustly and then attach a timestamp of when the 
+cancellations *quite* robustly and then attach a timestamp of when the 
 appointments where made, clicked or activated or however this is called.
 
 Still, there seem to be some erratic updates which mess up the calculation
 and some offices seem to only update the availability every couple of days. 
-From first inspection of the recorded data there is actually not much going on 
-at all except for a few cities or districts. Quite sure, this is due to the
-pandemic and the *german corps spirit* of bureaucracy in general. 
+In fact, this project turned out to demand **a lot** of time and work, 
+especially in finding and fixing all my mistakes in the beginning. 
+After the first 10 weeks of data collection, some of the mistakes have
+been spotted.  
 
 Below's a week of extracted data for all netappoint/tevis interfaces
 resampled to a 1 hour interval. Offices with strange peaks where
@@ -279,9 +277,10 @@ One custom appointment interface of special interest is the
 [Impf-Terminvergabe Thüringen](https://www.impfen-thueringen.de/terminvergabe/index.php),
 the website to make covid vaccination appointments in Thuringia.
 They only offer one timeslot per day for at most 3 different days.
+And their offered dates change all the time. Out of pure interest,
+a snapshot is recorded every minute! 
 
-To approximate the number of appointments made per hour,
-a snapshot is recorded every minute. Whenever a new snapshot
+In below graphic, whenever a new snapshot
 offers a timeslot that is **after** the previously offered timeslot,
 the previous timeslot is counted as one appointment.
 
@@ -300,16 +299,14 @@ fit the perceived reality.
   They seem to have an older (or newer?) version of netappoint belonging to netcallup.de/qmatic
 
 - https://termin.kreis-oh.de/m/kreis-ostholstein/extern/calendar/?uid=e236b01b-460e-4c76-88db-7e083557c438&wsid=c262c86a-9973-4760-806a-bc9c75755014&lang=de
-- https://www.leipzig.de/fachanwendungen/termine/index.html
-
-  Using another system (probably) by dmk-ebusiness.de
 
 - https://sean.outsystemsenterprise.com/TicketSystemOnlineTermine/
 
 - https://service.berlin.de/terminvereinbarung/
 
   Started scraper [berlin.py](src/sources/berlin.py) but they 
-  protected themselves with throttling and captchas.
+  protect themselves with throttling and captchas. They really
+  do not want a bot crawling their page. 
     
 - https://www.radiologie-mannheim.de/online-terminvereinbarung/ is 
   using [termed.de](https://www.termed.de/) which is  
