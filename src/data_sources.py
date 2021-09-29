@@ -376,7 +376,7 @@ class DataSources:
         return ret_data
 
     def convert_snapshot(self, s: SourceBase, dt: datetime.datetime, snapshot_data: Union[dict, list]) -> Optional[List[dict]]:
-        data = s.convert_snapshot(dt, snapshot_data)
+        data = s.convert_snapshot(dt, snapshot_data, as_datetime=True)
         if data is None:
             return data
         return data

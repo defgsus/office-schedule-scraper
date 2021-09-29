@@ -28,6 +28,32 @@ class Termed(SourceBase):
     def index_url(cls) -> str:
         return cls.BASE_URL
 
+    @classmethod
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
+        ret_data = []
+        dates_dict = dict()
+        for loc in tqdm(data):
+            loc_id = loc["location_id"]
+            if isinstance(loc["dates"], list):
+                dates = loc["dates"]
+                if as_datetime:
+                    dates = [datetime.datetime.strptime(d, "%Y-%m-%d %H:%M:%S") for d in dates]
+                dates_dict[loc_id] = dates
+            else:
+                dates = dates_dict[loc["dates"]["eq"]]
+
+            ret_data.append({
+                "location_id": loc_id,
+                "location_name": loc["location_id"],
+                "dates": dates,
+            })
+        return ret_data
+
     def make_snapshot(self):
         locations = self.get_locations()
 
