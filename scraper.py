@@ -20,15 +20,15 @@ def parse_args():
     )
 
     parser.add_argument(
-        "-i", "--include", type=str,
+        "-i", "--include", type=str, nargs="+",
         help="wildcard pattern for sources to include"
     )
     parser.add_argument(
-        "-e", "--exclude", type=str,
+        "-e", "--exclude", type=str, nargs="+",
         help="wildcard pattern for sources to exclude"
     )
     parser.add_argument(
-        "-it", "--include-type", type=str,
+        "-it", "--include-type", type=str, nargs="+",
         help="wildcard pattern for source types to include"
     )
     parser.add_argument(

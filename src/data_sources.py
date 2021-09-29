@@ -15,8 +15,8 @@ class DataSources:
     def __init__(
             self,
             use_cache: bool = False,
-            include: Optional[str] = None,
-            exclude: Optional[str] = None,
+            include: Optional[Union[str, List[str]]] = None,
+            exclude: Optional[Union[str, List[str]]] = None,
             include_type: Optional[str] = None,
             date_from: Optional[str] = None,
             date_to: Optional[str] = None,
@@ -30,11 +30,11 @@ class DataSources:
 
         self.source_classes: List[Type[SourceBase]] = []
         for cls in installed_sources.values():
-            if exclude and (fnmatch.fnmatchcase(cls.ID, exclude) or fnmatch.fnmatchcase(cls.NAME, exclude)):
+            if exclude and (_string_filter(cls.ID, exclude) or _string_filter(cls.NAME, exclude)):
                 continue
-            if include and not fnmatch.fnmatchcase(cls.ID, include) and not fnmatch.fnmatchcase(cls.NAME, include):
+            if include and not _string_filter(cls.ID, include) and not _string_filter(cls.NAME, include):
                 continue
-            if include_type and not fnmatch.fnmatchcase(cls.SCRAPER_TYPE, include_type):
+            if include_type and not _string_filter(cls.SCRAPER_TYPE, include_type):
                 continue
 
             self.source_classes.append(cls)
@@ -439,3 +439,14 @@ class JsonEncoder(json.JSONEncoder):
         except Exception:
             print("X", type(o))
             raise
+
+
+def _string_filter(s: str, filter: Optional[Union[str, List[str]]]):
+    if not filter:
+        return True
+    if isinstance(filter, str):
+        filter = [str]
+    for f in filter:
+        if fnmatch.fnmatchcase(s, f):
+            return True
+    return False
