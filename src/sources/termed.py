@@ -128,7 +128,7 @@ class Termed(SourceBase):
             treatment_id: Optional[int] = None
     ) -> Optional[List[str]]:
         ts = int(start_date.timestamp())
-        ts = int(datetime.datetime(2021, 9, 28, 22, 0, 0).timestamp())
+        # ts = int(datetime.datetime(2021, 9, 28, 22, 0, 0).timestamp())
         ts_end = ts + 60 * 60 * 24 * 7 * self.num_weeks
 
         url = f"https://api.termed.de/v2/public/doc/{loc_id}/events/open/10/{ts}/{ts_end}"
