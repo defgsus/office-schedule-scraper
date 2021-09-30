@@ -36,6 +36,9 @@ class DataSources:
                 continue
             if include_type and not _string_filter(cls.SCRAPER_TYPE, include_type):
                 continue
+            
+            if cls.NEEDS_INCLUDE and not include:
+                continue
 
             self.source_classes.append(cls)
 

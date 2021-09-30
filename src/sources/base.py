@@ -40,6 +40,8 @@ class SourceBase:
     REQUEST_DELAY = 0
     # provide a name to exclude from parallel processing
     MULTI_PROCESS_GROUP: Optional[str] = None
+    # set to True if this scraper should not be used by default
+    NEEDS_INCLUDE = False
 
     ID: str = None
     NAME: str = None

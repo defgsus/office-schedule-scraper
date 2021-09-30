@@ -13,8 +13,8 @@ class Termed(SourceBase):
     """
     ID = "termed"
     NAME = "TerMed"
-
     BASE_URL = "https://www.termed.de"
+    NEEDS_INCLUDE = True  # this scraper is not part of official package
 
     DROP_IDS = {
         "3209",  # Max Mustermann

@@ -308,8 +308,12 @@ fit the perceived reality.
   protect themselves with throttling and captchas. They really
   do not want a bot crawling their page. 
     
-- https://www.radiologie-mannheim.de/online-terminvereinbarung/ is 
-  using [termed.de](https://www.termed.de/) which is  
-  fully APIfied
+- [termed.de](https://www.termed.de/) is fully APIfied and there
+  exists a prototype of a [scraper](src/sources/termed.py) 
+  but it yields such an enormous amount of data 
+  (more than 3000 calendars per snapshot leading to gigabytes per week) 
+  that it's not included in the data export.
+  
+  To use it, explicitly include it: `python scraper.py snapshot -i termed`
   
 - https://scheduler.mobimed.at/kinemedic/
