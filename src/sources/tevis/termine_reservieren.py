@@ -50,6 +50,12 @@ class Fulda(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/fulda/"
 
 
+class Gottmadingen(TermineReservierenBase):
+    ID = "gottmadingen"
+    NAME = "Gemeinde Gottmadingen"
+    BASE_URL = "https://termine-reservieren.de/termine/gottmadingen"
+
+
 class Gronau(TermineReservierenBase):
     ID = "gronau"
     NAME = "Stadt Gronau"
