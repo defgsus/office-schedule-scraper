@@ -44,6 +44,12 @@ class Frankenthal(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/frankenthal"
 
 
+class Fulda(TermineReservierenBase):
+    ID = "fulda"
+    NAME = "Stadt Fulda"
+    BASE_URL = "https://termine-reservieren.de/termine/fulda/"
+
+
 class Gronau(TermineReservierenBase):
     ID = "gronau"
     NAME = "Stadt Gronau"
