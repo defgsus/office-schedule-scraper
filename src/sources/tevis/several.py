@@ -25,6 +25,12 @@ class Mainz(TevisBaseScraper):
     BASE_URL = "https://otv.mainz.de"
 
 
+class MaerkischerKreis(TevisBaseScraper):
+    ID = "maerkischerkreis"
+    NAME = "Märkischer Kreis"
+    BASE_URL = "https://terminvergabe.maerkischer-kreis.de"
+
+
 class LkOrtenau(TevisBaseScraper):
     ID = "lkortenau"
     NAME = "Landkreis Ortenau"
