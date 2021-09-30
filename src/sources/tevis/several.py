@@ -19,6 +19,12 @@ class Heidelberg(TevisBaseScraper):
     BASE_URL = "https://tevis-online.heidelberg.de"
 
 
+class KreisSoest(TevisBaseScraper):
+    ID = "kreissoest"
+    NAME = "Kreis Soest"
+    BASE_URL = "https://termine-buergerdienste.kreis-soest.de"
+
+
 class KreisWesel(TevisBaseScraper):
     ID = "kreiswesel"
     NAME = "Kreis Wesel"
