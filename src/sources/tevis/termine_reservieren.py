@@ -74,6 +74,12 @@ class Ingelheim(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/ingelheim"
 
 
+class KfzGrasbrunn(TermineReservierenBase):
+    ID = "kfzgrasbrunn"
+    NAME = "Kfz Zulassungstelle Grasbrunn"
+    BASE_URL = "https://termine-reservieren.de/termine/lramuenchen/kfz-zulassungsstelle-grasbrunn"
+
+
 class LraZwickau(TermineReservierenBase):
     ID = "lkzwickau"
     NAME = "Landkreis Zwickau"
@@ -98,10 +104,22 @@ class Miesbach(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/lra-miesbach"
 
 
-class Muenchenefa(TermineReservierenBase):
+class MuenchenAusl(TermineReservierenBase):
+    ID = "lramuenchenausl"
+    NAME = "Landkreis München Ausländerbehörde"
+    BASE_URL = "https://termine-reservieren.de/termine/lramuenchen/auslaenderbehoerde"
+
+
+class MuenchenEfa(TermineReservierenBase):
     ID = "lramuenchenefa"
     NAME = "Landratsamt München"
     BASE_URL = "https://termine-reservieren.de/termine/lramuenchen/efa"
+
+
+class MuenchenJob(TermineReservierenBase):
+    ID = "lramuenchenjob"
+    NAME = "Landkreis München Jobcenter"
+    BASE_URL = "https://amtonline.de/tvweb/jc-muenchen"
 
 
 class Minden(TermineReservierenBase):
