@@ -17,6 +17,13 @@ class BonnBau(NetAppointBase):
     VERIFY_CERTIFICATE = False
 
 
+class Braunschweig(NetAppointBase):
+    ID = "braunschweig"
+    NAME = "Stadt Braunschweig"
+    BASE_URL = "https://otr.braunschweig.de/netappoint"
+    NA_COMPANY = "stadtbraunschweig"
+
+
 class Dresden(NetAppointBase):
     ID = "dresden"
     NAME = "Stadt Dresden"

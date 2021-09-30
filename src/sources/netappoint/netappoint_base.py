@@ -145,11 +145,14 @@ class NetAppointBase(SourceBase):
         next_url = self.full_url(next_url)
         return locations, next_url
 
-    def get_na_step_3(self, soup) -> str:
+    def get_na_step_3(self, soup) -> Optional[str]:
         for li in soup.find_all("li", {"class": "nat_casetypelist_casetype_li"}):
             next_url = li.find("a").get("href")
             if next_url and "step=3&" in next_url:
                 return self.full_url(next_url)
+        soup_str = str(soup)
+        if "Die vorraussichtliche Dauer der von Ihnen gewählten Dienstleistungen ist zu lang." in soup_str:
+            return None
         raise ValueError(f"step=3 url not found!\nContent: {soup}")
 
     def get_na_days(self, url: str, cases: dict) -> List[dict]:
@@ -169,9 +172,11 @@ class NetAppointBase(SourceBase):
                 return []
 
             # otherwise we need to select a location first
-            soup = self.get_html_soup(
-                self.get_na_step_3(soup)
-            )
+            step_3_url = self.get_na_step_3(soup)
+            if step_3_url is None:
+                return []
+
+            soup = self.get_html_soup(step_3_url)
 
         days = []
         for a in soup.find_all("a", {"class": "nat_calendar_weekday_bookable"}):
