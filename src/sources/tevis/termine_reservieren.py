@@ -68,6 +68,12 @@ class Ingelheim(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/ingelheim"
 
 
+class LraZwickau(TermineReservierenBase):
+    ID = "lkzwickau"
+    NAME = "Landkreis Zwickau"
+    BASE_URL = "https://termine-reservieren.de/termine/lra-zwickau"
+
+
 class MayenKoblenz(TermineReservierenBase):
     ID = "kvmayenkoblenz"
     NAME = "Landkreis Mayen-Koblenz"
