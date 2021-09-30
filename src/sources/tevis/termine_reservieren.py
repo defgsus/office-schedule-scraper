@@ -116,12 +116,6 @@ class MuenchenEfa(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/lramuenchen/efa"
 
 
-class MuenchenJob(TermineReservierenBase):
-    ID = "lramuenchenjob"
-    NAME = "Landkreis München Jobcenter"
-    BASE_URL = "https://amtonline.de/tvweb/jc-muenchen"
-
-
 class Minden(TermineReservierenBase):
     ID = "minden"
     NAME = "Stadt Minden"
