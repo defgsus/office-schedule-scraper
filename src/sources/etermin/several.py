@@ -40,6 +40,7 @@ HAND_PICKED = [
     ("stahnsdorf", "Gemeinde Stahnsdorf", "stahnsdorf"),
     ("stuttgartpalais", "StadtPalais - Museum für Stuttgart", "stadtlaborstuttgart"),
     ("teublitztest", "Corona-Schnellteststelle Teublitz", "spitzwegapo"),
+    ("walldorf", "Stadt Walldorf", "stadt-walldorf"),
     ("wedemarktest", "Corona-Schnelltestzentrum Caspar & Dase für die Wedemark", "Schnelltestungen"),
     ("weimarunioffice", "Bauhaus-Universität Weimar Erdgeschoss Raum 002", "international-office"),
     ("wiehl", "Stadt Wiehl", "stadtwiehl"),
