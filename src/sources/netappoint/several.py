@@ -90,6 +90,20 @@ class LeipzigStandesamt(NetAppointBase):
     NA_EXTRA_PARAMS = ["cur_causes=0|1|2"]
 
 
+class LkBhKfz(NetAppointBase):
+    ID = "lkbhkfz"
+    NAME = "Landkreis Breisgau-Hochschwarzwald Kfz-Zulassungsbehörde"
+    BASE_URL = "https://termin.lkbh.net"
+    NA_COMPANY = "lkbh-zulassung"
+
+
+class LkBhLw(NetAppointBase):
+    ID = "lkbhlw"
+    NAME = "Landkreis Breisgau-Hochschwarzwald Landwitschaft"
+    BASE_URL = "https://termin.lkbh.net"
+    NA_COMPANY = "lkbh-lw"
+
+
 class Magdeburg(NetAppointBase):
     ID = "magdeburg"
     NAME = "Stadt Magdeburg"
