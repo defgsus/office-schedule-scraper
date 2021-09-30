@@ -137,6 +137,24 @@ class SourceBase:
         return rows
 
     @classmethod
+    def iter_export_rows(cls, data_list: List[Tuple[datetime.datetime, List[dict]]], all_dates: List[str]):
+        for locations in data_list:
+            locations[1].sort(key=lambda l: l["location_id"])
+            locations[1].sort(key=lambda l: l["source_id"])
+        data_list.sort(key=lambda t: t[0])
+
+        for dt, locations in data_list:
+            for loc in locations:
+                yield [
+                        dt,
+                        str(loc["source_id"]),
+                        str(loc["location_id"]),
+                    ] + [
+                        "1" if date in loc["dates"] else ""
+                        for date in all_dates
+                    ]
+
+    @classmethod
     def compare_snapshot_location(
             cls,
             prev_timestamp: datetime.datetime, prev_data: dict,

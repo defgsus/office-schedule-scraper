@@ -386,8 +386,7 @@ class DataSources:
         changes = (
             pd.DataFrame(self.get_snapshot_changes())
             .set_index("source_id")#, "location_id"])
-            .groupby("source_id")
-            .sum()
+            .groupby("source_id").sum()
             .to_dict()
         )
 
@@ -445,7 +444,7 @@ def _string_filter(s: str, filter: Optional[Union[str, List[str]]]):
     if not filter:
         return True
     if isinstance(filter, str):
-        filter = [str]
+        filter = [s]
     for f in filter:
         if fnmatch.fnmatchcase(s, f):
             return True

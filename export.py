@@ -19,11 +19,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "-i", "--include", type=str,
+        "-i", "--include", type=str, nargs="+",
         help="wildcard pattern for sources to include"
     )
     parser.add_argument(
-        "-e", "--exclude", type=str,
+        "-e", "--exclude", type=str, nargs="+",
         help="wildcard pattern for sources to exclude"
     )
     parser.add_argument(
@@ -37,6 +37,10 @@ def parse_args():
     parser.add_argument(
         "--export", type=str, default="export",
         help="Export directory for tar.gz files per isoweek"
+    )
+    parser.add_argument(
+        "-nc", "--no-compressed", type=bool, default=False, const=True, nargs="?",
+        help="Do not run compression"
     )
 
     return parser.parse_args()
@@ -79,29 +83,32 @@ class Exporter:
             do_export = False
             old_iso_week = None
             last_week_data = []
-            for dt, unchanged, data in source.iter_snapshot_data(
+            for dt, unchanged, data in tqdm(source.iter_snapshot_data(
                     date_from=self.date_from.isoformat(),
                     with_unchanged=self.with_unchanged,
-            ):
+            ), f"scanning {source_description}"):
                 iso_week = dt.isocalendar()[:2]
                 if old_iso_week is None:
                     old_iso_week = iso_week
                 else:
+                    #if str(dt) == "2021-09-29 15:27:38" or str(dt) == "2021-09-30 10:43:03":
                     if iso_week > old_iso_week:
                         do_export = True
                         if last_week_data:
                             self._export_week(source, old_iso_week, last_week_data, source_description)
                         old_iso_week = iso_week
                         last_week_data.clear()
+
                     if do_export:
                         last_week_data.append((dt, data))
 
         self._sort_meta_data()
-        #print(self.meta_data["lramuenchenefa"])
 
-        print(f"storing {meta_data_filename}")
-        with open(meta_data_filename, "w") as fp:
-            json.dump(self.meta_data, fp, indent=2)
+        if self.meta_data:
+            print(f"storing {meta_data_filename}")
+            os.makedirs(self.export_path, exist_ok=True)
+            with open(meta_data_filename, "w") as fp:
+                json.dump(self.meta_data, fp, indent=2)
 
     def _export_week(
             self,
@@ -121,10 +128,8 @@ class Exporter:
         location_data_list = []
         all_dates = set()
 
-        for dt, snapshot_data in tqdm(
-                snapshot_data_list,
-                desc=f"{source_description}: converting week {iso_week}",
-        ):
+        for dt, snapshot_data in snapshot_data_list:
+                #desc=f"{source_description}: converting week {iso_week}",
             try:
                 locations = source.convert_snapshot(dt, snapshot_data)
             except Exception as e:
@@ -152,11 +157,11 @@ class Exporter:
 
         all_dates = [str(d) for d in sorted(all_dates)]
 
-        rows = source.make_export_table(location_data_list, all_dates)
-        rows.sort(key=lambda row: row[2])
-        rows.sort(key=lambda row: row[0])
+        #rows = source.make_export_table(location_data_list, all_dates)
+        #rows.sort(key=lambda row: row[2])
+        #rows.sort(key=lambda row: row[0])
 
-        print(f"{source_description}: snapshot dates: {rows[0][0]} to {rows[-1][0]}")
+        #print(f"{source_description}: snapshot dates: {rows[0][0]} to {rows[-1][0]}")
 
         print(f"{source_description}: storing {filename}")
         os.makedirs(export_path, exist_ok=True)
@@ -164,7 +169,8 @@ class Exporter:
             with open(filename, "w") as fp:
                 writer = csv.writer(fp)
                 writer.writerow(["date", "source_id", "location_id"] + all_dates)
-                writer.writerows(rows)
+                for row in tqdm(source.iter_export_rows(location_data_list, all_dates), desc=f"{source_description}: writing rows"):
+                    writer.writerow(row)
         except:
             if filename.exists():
                 os.remove(filename)
@@ -250,4 +256,5 @@ if __name__ == "__main__":
     )
 
     exporter.export()
-    exporter.export_compressed()
+    if not args.no_compressed:
+        exporter.export_compressed()
