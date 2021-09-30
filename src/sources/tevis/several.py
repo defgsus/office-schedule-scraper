@@ -35,3 +35,10 @@ class LkOrtenau(TevisBaseScraper):
     ID = "lkortenau"
     NAME = "Landkreis Ortenau"
     BASE_URL = "https://www.termine.lraog.de"
+
+
+class LraDachau(TevisBaseScraper):
+    ID = "dachau"
+    NAME = "Landratsamt Dachau"
+    BASE_URL = "https://termine.landratsamt-dachau.de/tevis"
+
