@@ -45,12 +45,20 @@ class Halle(NetAppointBase):
     NA_COMPANY = "stadthalle"
 
 
-# TODO: no appointments during pandemic...
+# no appointments during pandemic...
 #class Hamburg(NetAppointBase):
 #    ID = "hamburg"
 #    NAME = "Stadt Hamburg"
 #    BASE_URL = "https://netappoint.de/hh/hamburg"
 #    NA_COMPANY = "hamburg"
+
+
+# TODO: "Standortwahl" is not implemented right
+class Koeln(NetAppointBase):
+    ID = "koeln"
+    NAME = "Stadt Koeln"
+    BASE_URL = "https://termine-online.stadt-koeln.de"
+    NA_COMPANY = "stadtkoeln"
 
 
 class KaiserslauternAusl(NetAppointBase):

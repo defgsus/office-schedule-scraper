@@ -153,6 +153,10 @@ class NetAppointBase(SourceBase):
         soup_str = str(soup)
         if "Die vorraussichtliche Dauer der von Ihnen gewählten Dienstleistungen ist zu lang." in soup_str:
             return None
+        if "Bitte geben Sie mindestens ein Anliegen an." in soup_str:
+            return None
+        if "Die von Ihnen gewählte Anliegens-Kombination kann nicht an einem Standort bearbeitet werden" in soup_str:
+            return None
         raise ValueError(f"step=3 url not found!\nContent: {soup}")
 
     def get_na_days(self, url: str, cases: dict) -> List[dict]:
