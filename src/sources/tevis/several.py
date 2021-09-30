@@ -48,3 +48,9 @@ class LraDachau(TevisBaseScraper):
     NAME = "Landratsamt Dachau"
     BASE_URL = "https://termine.landratsamt-dachau.de/tevis"
 
+
+class Saarbruecken(TevisBaseScraper):
+    ID = "saarbruecken"
+    NAME = "Stadt Saarbrücken"
+    BASE_URL = "https://terminvergabe.saarbruecken.de"
+
