@@ -146,6 +146,12 @@ class Speyer(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/speyer"
 
 
+class Stade(TermineReservierenBase):
+    ID = "stade"
+    NAME = "Landkreis Stade"
+    BASE_URL = "https://termine-reservieren.de/termine/stade"
+
+
 class Stadtsoest(TermineReservierenBase):
     ID = "stadtsoest"
     NAME = "Stadt Söst"
