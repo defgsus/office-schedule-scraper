@@ -23,3 +23,9 @@ class Mainz(TevisBaseScraper):
     ID = "mainz"
     NAME = "Stadt Mainz"
     BASE_URL = "https://otv.mainz.de"
+
+
+class LkOrtenau(TevisBaseScraper):
+    ID = "lkortenau"
+    NAME = "Landkreis Ortenau"
+    BASE_URL = "https://www.termine.lraog.de"
