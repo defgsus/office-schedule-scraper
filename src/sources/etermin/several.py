@@ -11,6 +11,7 @@ HAND_PICKED = [
     ("burgendlandkaa", "Kammer für Arbeiter und Angestellte für das Burgenland", "GBRBgld"),
     ("butzbach", "Magistrat der Stadt Butzbach", "stadtbutzbach"),
     ("coesfeld", "Stadt Coesfeld", "coe"),
+    ("lkcoesfeld", "Kreis Coesfeld", "kreiscoesfeld"),
     ("daunvg", "Verbandsgemeindeverwaltung Daun", "vgdaun"),
     ("dormagen", "Stadt Dormagen", "stadtdormagen"),
     ("duelmen", "Stadt Dülmen", "duelmen"),
