@@ -7,6 +7,12 @@ class Amberg(TevisBaseScraper):
     BASE_URL = "https://termine.amberg.de"
 
 
+class Bremen(TevisBaseScraper):
+    ID = "bremen"
+    NAME = "Stadt Bremen / Bremerhaven"
+    BASE_URL = "https://termin.bremen.de/termine"
+
+
 class Friesland(TevisBaseScraper):
     ID = "friesland"
     NAME = "Landkreis Friesland"
