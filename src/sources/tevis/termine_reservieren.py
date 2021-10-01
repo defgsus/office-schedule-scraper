@@ -50,6 +50,12 @@ class Fulda(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/fulda/"
 
 
+class Fuerstenfeldbruck(TermineReservierenBase):
+    ID = "fuerstenfeldbruck"
+    NAME = "Landratsamt Fürstenfeldbruck"
+    BASE_URL = "https://termine-reservieren.de/termine/lra-ffb"
+
+
 class Gottmadingen(TermineReservierenBase):
     ID = "gottmadingen"
     NAME = "Gemeinde Gottmadingen"
