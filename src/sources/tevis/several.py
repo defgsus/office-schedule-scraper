@@ -43,6 +43,12 @@ class MaerkischerKreis(TevisBaseScraper):
     BASE_URL = "https://terminvergabe.maerkischer-kreis.de"
 
 
+class Muenster(TevisBaseScraper):
+    ID = "muenster"
+    NAME = "Stadt Muenster"
+    BASE_URL = "https://termine.stadt-muenster.de"
+
+
 class LkOrtenau(TevisBaseScraper):
     ID = "lkortenau"
     NAME = "Landkreis Ortenau"
