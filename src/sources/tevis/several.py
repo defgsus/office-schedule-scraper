@@ -66,3 +66,9 @@ class Saarbruecken(TevisBaseScraper):
     NAME = "Stadt Saarbrücken"
     BASE_URL = "https://terminvergabe.saarbruecken.de"
 
+
+class Salzlandkreis(TevisBaseScraper):
+    ID = "salzlandkreis"
+    NAME = "Salzlandkreis"
+    BASE_URL = "https://termine.salzlandkreis.de"
+    VERIFY_CERTIFICATE = False
