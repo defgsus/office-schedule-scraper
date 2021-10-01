@@ -298,22 +298,82 @@ fit the perceived reality.
   
   They seem to have an older (or newer?) version of netappoint belonging to netcallup.de/qmatic
 
-- https://termin.kreis-oh.de/m/kreis-ostholstein/extern/calendar/?uid=e236b01b-460e-4c76-88db-7e083557c438&wsid=c262c86a-9973-4760-806a-bc9c75755014&lang=de
-
 - https://sean.outsystemsenterprise.com/TicketSystemOnlineTermine/
+
+- https://terminreservierung.blutspende.de/
+
+- https://scheduler.mobimed.at/kinemedic/
+
+- https://timeacle.com/business/index/id/374
+
+- https://spieleland.besuchsplaner.online
+
+- https://meintermin.essen.de/termine/index.php
+
+- https://testtermin.de/ - corona tests across germany
+
+- https://www.rhein-erft-kreis.de/artikel/termine-online-reservieren
+
+- Another generic appointment service by www.cleverq.de (Business Intelligent Cloud GmbH)
+    - https://cqm.cleverq.de/public/appointments/lk_cloppenpurg_kfz_cloppenburg/index.html?lang=de
+    - https://cqm.cleverq.de/public/appointments/zulassung_alzenau/index.html?lang=de 
+
+- https://tempus-termine.com/termine/index.php?anlagennr=12 (by Berner Telecom-Dienste - Wuppertal.) 
+  
+  By searching through the ids, they seem to have maybe 40 real offices behind. 
+  Unfortunately there's no json and many pages are styled or made 
+  differently. Would be a good deal of work..
+
+- https://www.buergerserviceportal.de/
+
+  They require registration.
+
+- *Smart Customer eXperience* https://smart-cjm.com
+    - https://rsk.saas.smartcjm.com/m/strassenverkehrsamt/extern/calendar/?uid=8a08422a-9d05-48e4-bb31-4ee51c4cd68a
+    - https://termin.ostallgaeu.de/m/lra-oal/extern/calendar/?uid=259bec4f-6d28-46e3-a008-94818c84fe32
+    - https://lk-biberach.saas.smartcjm.com/m/Zulassung/extern/calendar/?uid=0413567e-ad7b-46f8-abc0-d1756c39109c
+    - https://termine.landkreis-karlsruhe.de/m/Zulassung/extern/calendar/?uid=81ebbc74-3681-4900-84e7-457ade4662ec
+    - https://termin.kreis-oh.de/m/kreis-ostholstein/extern/calendar/?uid=e236b01b-460e-4c76-88db-7e083557c438&wsid=c262c86a-9973-4760-806a-bc9c75755014&lang=de
+    - https://termine.lkgi.de/m/zulassungsstelle/extern/calendar/?uid=46c3c125-ee61-4949-97f4-132979349815
+    - https://termine.lkgi.de/m/Zulassungstelle-Gruenberg/extern/calendar/?uid=36f4d860-a5e2-4f73-ad7c-6ee3619d3ff9
+    - https://termine.lra-es.de/m/strassenverkehrsamt/extern/calendar/?uid=396fc9d8-b0e0-4138-8ab3-82bad96cdb3e
+    - a couple linked on https://www.karlsruhe.de/b4/buergerdienste/terminvereinbarung.de
+    - https://thor.ostalbkreis.de/m/oakstrassenverkehr/extern/calendar/?uid=caa33f31-2148-4149-986b-183dda71bdc3
+    - https://termin.kreis-oh.de/m/kreis-ostholstein/extern/calendar/?uid=e236b01b-460e-4c76-88db-7e083557c438
+        
+- https://www.rhein-neckar-kreis.de/start/service/terminvereinbarung.html
+
+  Yet another system. Seems to need email and phone before showing dates.
+
+- Yet another system. By *Terminland GmbH*.
+    - https://www.terminland.de/Ennepe-Ruhr-Kreis/?m=31789
+    - https://www.terminland.eu/impfzentrum_lra-ab/
+
+- "Internetgeschaeftsvorfaelle"
+    - https://kfz.virtuelles-rathaus.de/igv2-man/servlet/Internetgeschaeftsvorfaelle   
+    - https://laikra.komm.one/dvvlaikraIGV21/servlet/Internetgeschaeftsvorfaelle
+    
+- https://dtms.wiesbaden.de/DTMSTerminWeb/
+  
+  Yet another system. based on dotnet oO
+
+- https://reservation.frontdesksuite.com/pinneberg/Termin/
+
+### Started but abandoned 
 
 - https://service.berlin.de/terminvereinbarung/
 
   Started scraper [berlin.py](src/sources/berlin.py) but they 
   protect themselves with throttling and captchas. They really
   do not want a bot crawling their page. 
-    
+ 
 - [termed.de](https://www.termed.de/) is fully APIfied and there
   exists a prototype of a [scraper](src/sources/termed.py) 
   but it yields such an enormous amount of data 
   (more than 3000 calendars per snapshot leading to gigabytes per week) 
-  that it's not included in the data export.
+  that it is not included in the data export. Also it's a 
+  lot of private medical practices which do not really fit the 
+  *public office* category.
   
   To use it, explicitly include it: `python scraper.py snapshot -i termed`
-  
-- https://scheduler.mobimed.at/kinemedic/
+ 
