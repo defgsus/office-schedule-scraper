@@ -1,6 +1,38 @@
 from .netappoint_base import *
 
 
+class BochumBau(NetAppointBase):
+    ID = "bochumbau"
+    NAME = "Stadt Bochum Baubürgeramt"
+    BASE_URL = "https://terminvergabe.bochum.de"
+    NA_COMPANY = "bochumbaub"
+    NA_EXTRA_PARAMS = ("cur_cause=0", )
+
+
+class BochumKfz(NetAppointBase):
+    ID = "bochumkfz"
+    NAME = "Stadt Bochum Büro für Kfz-Angelegenheiten"
+    BASE_URL = "https://terminvergabe.bochum.de"
+    NA_COMPANY = "bochumbb"
+    NA_EXTRA_PARAMS = ("cur_cause=10", )
+
+
+class BochumZulassung(NetAppointBase):
+    ID = "bochumzl"
+    NAME = "Stadt Bochum Zulassungsstelle"
+    BASE_URL = "https://terminvergabe.bochum.de"
+    NA_COMPANY = "bochum-stva"
+    NA_EXTRA_PARAMS = ("cur_cause=0", )
+
+
+class BochumZulassung2(NetAppointBase):
+    ID = "bochumzl2"
+    NAME = "Stadt Bochum Zulassungsstelle Umtausch"
+    BASE_URL = "https://terminvergabe.bochum.de"
+    NA_COMPANY = "bochum-stva"
+    NA_EXTRA_PARAMS = ("cur_cause=1", )
+
+
 class Bonn(NetAppointBase):
     ID = "bonn"
     NAME = "Stadt Bonn"
