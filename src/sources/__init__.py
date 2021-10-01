@@ -6,4 +6,5 @@ from .termed import *
 
 from . import etermin
 from . import netappoint
+from . import tempus
 from . import tevis
