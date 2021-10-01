@@ -117,3 +117,10 @@ class Magdeburg(NetAppointBase):
     NAME = "Stadt Magdeburg"
     BASE_URL = "https://service.magdeburg.de/netappoint"
     NA_COMPANY = "magdeburg"
+
+
+class SrAachen(NetAppointBase):
+    ID = "sraachen"
+    NAME = "Städteregion Aachen"
+    BASE_URL = "https://terminmanagement.regioit-aachen.de/sr_aachen"
+    NA_COMPANY = "staedteregion-aachen"
