@@ -85,3 +85,9 @@ class Salzlandkreis(TevisBaseScraper):
     NAME = "Salzlandkreis"
     BASE_URL = "https://termine.salzlandkreis.de"
     VERIFY_CERTIFICATE = False
+
+
+class Verden(TevisBaseScraper):
+    ID = "verden"
+    NAME = "Landkreis Verden"
+    BASE_URL = "https://lkv.landkreis-verden.de/TEVISWEB"
