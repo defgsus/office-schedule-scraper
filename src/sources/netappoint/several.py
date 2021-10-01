@@ -90,6 +90,14 @@ class LeipzigStandesamt(NetAppointBase):
     NA_EXTRA_PARAMS = ["cur_causes=0|1|2"]
 
 
+class Leverkusen(NetAppointBase):
+    ID = "leverkusen"
+    NAME = "Zulassungsstelle Leverkusen"
+    BASE_URL = "https://termine.leverkusen.de"
+    NA_COMPANY = "LEV-Zulassung"
+    NA_EXTRA_PARAMS = ["cur_cause=0"]
+
+
 class LkBhKfz(NetAppointBase):
     ID = "lkbhkfz"
     NAME = "Landkreis Breisgau-Hochschwarzwald Kfz-Zulassungsbehörde"
