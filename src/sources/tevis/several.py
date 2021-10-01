@@ -74,6 +74,12 @@ class MaerkischerKreis(TevisBaseScraper):
     BASE_URL = "https://terminvergabe.maerkischer-kreis.de"
 
 
+class Muelheim(TevisBaseScraper):
+    ID = "muelheim"
+    NAME = "Stadt Mülheim an der Ruhr"
+    BASE_URL = "https://terminvergabe.muelheim-ruhr.de"
+
+
 class Muenster(TevisBaseScraper):
     ID = "muenster"
     NAME = "Stadt Muenster"
