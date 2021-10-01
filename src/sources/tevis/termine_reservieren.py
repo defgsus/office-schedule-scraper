@@ -128,6 +128,12 @@ class Minden(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/minden"
 
 
+class Nuernberg(TermineReservierenBase):
+    ID = "nuernberg"
+    NAME = "Stadt Nürnberg"
+    BASE_URL = "https://nuernberg.termine-reservieren.de"
+
+
 class Paderborn(TermineReservierenBase):
     ID = "paderborn"
     NAME = "Stadt Paderborn"
