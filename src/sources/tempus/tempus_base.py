@@ -26,20 +26,29 @@ class TempusBaseScraper(SourceBase):
         # print(json.dumps(options, indent=2))
 
         calendars = self.tempus_get_calendars(options)
-        options.pop("url")
+
         return {
-            "options": options,
+            "options": options["options"],
             "calendars": calendars
         }
 
     def tempus_get_options(self) -> dict:
         soup = self.get_html_soup(self.index_url())
         form = soup.find("form", {"id": "formular"})
-        if not form:
-            pass
 
+        options_list = (
+            self.tempus_get_options_list_1(soup, form)
+            or self.tempus_get_options_list_2(soup, form)
+            #or self.tempus_get_options_list_3(soup, form)
+        )
+
+        return {
+            "url": form.attrs["action"],
+            "options": options_list,
+        }
+
+    def tempus_get_options_list_1(self, soup, form):
         options_list = []
-
         main_menu = form.find("ul", {"class": "menuepunkt"})
         if main_menu:
             for sub_menu_container in main_menu.find_all("li", recursive=False):
@@ -62,27 +71,62 @@ class TempusBaseScraper(SourceBase):
                 else:
                     category = "default"
                     li = sub_menu_container
+                    form_id = None
                     input = li.find("input", {"type": "radio"})
                     if input:
+                        form_id = input.attrs["value"]
+                    else:
+                        input = li.find("input", {"type": "checkbox"})
+                        if input:
+                            form_id = input.attrs["value"]
+                        else:
+                            input = li.find("select")
+                            if input:
+                                form_id = input.attrs["name"]
+
+                    name = li.text.strip()
+                    div = li.find("div", {"class": "liContent"})
+                    if div:
+                        name = div.text.strip()
+                    if form_id:
                         entry = {
                             "category": category,
-                            "name": li.text.strip(),
-                            "id": input.attrs["value"],
+                            "name": name,
+                            "id": form_id,
                         }
                         options_list.append(entry)
-        else:
-            def _label_select(tag):
-                if tag.name != "label":
-                    return False
-                klass = tag.attrs["class"] or ""
-                return "menuepunkt" in klass or "untermenuepunkt" in klass
+        return options_list
 
-            menu_labels = form.find_all("label", {"class": "menuepunkt"})
-            sub_menu_labels = form.find_all("label", {"class": "untermenuepunkt"})
-            if not sub_menu_labels:
-                for label in menu_labels:
+    def tempus_get_options_list_2(self, soup, form):
+        def _label_select(tag):
+            if tag.name != "label":
+                return False
+            klass = tag.attrs["class"] or ""
+            return "menuepunkt" in klass or "untermenuepunkt" in klass
+
+        options_list = []
+        menu_labels = form.find_all("label", {"class": "menuepunkt"})
+        sub_menu_labels = form.find_all("label", {"class": "untermenuepunkt"})
+        if not sub_menu_labels:
+            for label in menu_labels:
+                entry = {
+                    "category": "default",
+                    "name": label.find("span").text.strip(),
+                    "id": None,
+                }
+                select = label.find("select")
+                if select:
+                    entry["id"] = select.attrs["id"]
+
+                options_list.append(entry)
+        else:
+            category = "-"
+            for label in form.find_all(_label_select):
+                if "menuepunkt" in label.attrs["class"]:
+                    category = label.text.strip()
+                else:
                     entry = {
-                        "category": "default",
+                        "category": category,
                         "name": label.find("span").text.strip(),
                         "id": None,
                     }
@@ -91,26 +135,7 @@ class TempusBaseScraper(SourceBase):
                         entry["id"] = select.attrs["id"]
 
                     options_list.append(entry)
-            else:
-                category = "-"
-                for label in form.find_all(_label_select):
-                    if "menuepunkt" in label.attrs["class"]:
-                        category = label.text.strip()
-                    else:
-                        entry = {
-                            "category": category,
-                            "name": label.find("span").text.strip(),
-                            "id": None,
-                        }
-                        select = label.find("select")
-                        if select:
-                            entry["id"] = select.attrs["id"]
-
-                        options_list.append(entry)
-        return {
-            "url": form.attrs["action"],
-            "options": options_list,
-        }
+        return options_list
 
     def tempus_get_calendars(self, options: dict) -> dict:
         categories = {}
@@ -141,9 +166,17 @@ class TempusBaseScraper(SourceBase):
         soup = self.tempus_skip_information(soup)
         soup_str = str(soup)
 
+        if "Leider können wir Ihnen im Moment an keinem Standort einen Termin anbieten." in soup_str:
+            return
+
         if not (
-                "Standorte und<br/>frühestmögliche Termine" in soup_str
+                "Der stadtweit früheste Termin ist" in soup_str
+                or "Standorte und frühestmögliche Termine" in soup_str
+                or "Standorte und<br/>frühestmögliche Termine" in soup_str
                 or "Bürgerbüros und<br/>frühestmögliche Termine" in soup_str
+                or "Bürgerbüros und frühestmögliche Termine" in soup_str
+                or "Bürgerämter und<br/>frühestmögliche Termine" in soup_str
+                or "Zulassungsstelle und<br/>frühestmögliche Termine" in soup_str
         ):
             yield category, self.tempus_get_calendar_page(soup)
 
@@ -166,24 +199,37 @@ class TempusBaseScraper(SourceBase):
                         sub_category = a.text.strip()
                         if sub_category.startswith("Termine in "):
                             sub_category = sub_category[11:]
-                            href = a.attrs["href"]
-                            sub_soup = self.get_html_soup(self._full_url(href))
-                            yield f"{category}|{sub_category}", self.tempus_get_calendar_page(sub_soup)
-                            num_locations += 1
+
+                        href = a.attrs["href"]
+                        sub_soup = self.get_html_soup(self._full_url(href))
+                        yield f"{category}|{sub_category}", self.tempus_get_calendar_page(sub_soup)
+                        num_locations += 1
+
+            if not num_locations:
+                print(soup)
+                raise ValueError(f"{self.ID}/{self.TEMPUS_ID} No locations found for {category} {url}")
 
     def tempus_get_calendar_page(self, soup) -> Dict[str, List[str]]:
         soup = self.tempus_skip_information(soup)
 
         event_dates = []
         table = soup.find("table", {"class": "cal"})
+        if not table:
+            # then it's probably the cancellation screen
+            if soup.find("table", {"class": "appointment"}):
+                return {}
 
-        for td in table.find_all("td", {"class": "monatevent"}):
-            url = td.find("a").attrs["href"]
-            match = self._RE_URL_DATE.match(url)
-            event_dates.append({
-                "date": match.groups()[0],
-                "url": url,
-            })
+            print(soup)
+            raise ValueError("No table found")
+
+        for table in soup.find_all("table", {"class": "cal"}):
+            for td in table.find_all("td", {"class": "monatevent"}):
+                url = td.find("a").attrs["href"]
+                match = self._RE_URL_DATE.match(url)
+                event_dates.append({
+                    "date": match.groups()[0],
+                    "url": url,
+                })
 
         ret_dates = {}
         for event in event_dates:
@@ -210,14 +256,16 @@ class TempusBaseScraper(SourceBase):
         if not (
             "<h1>Wichtiger Hinweis</h1>" in soup_str
             or "value=\"Ich habe die Hinweise zur Kenntnis genommen\"" in soup_str
+            or "value=\"Habe ich zur Kenntnis genommen\"" in soup_str
             or "value=\"Ich möchte gern vorbei kommen\"" in soup_str
+            or "value=\"Bestätigen und weiter zur Terminauswahl\"" in soup_str
         ):
             return soup
 
         input = soup.find("input", {"type": "button"})
         if not input:
             input = soup.find("input", {"type": "submit"})
-            
+
         on_click = input.attrs["onclick"]
         url = on_click[on_click.index("href='?")+6:-2]
         url = self._full_url(url)

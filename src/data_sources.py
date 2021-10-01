@@ -50,6 +50,12 @@ class DataSources:
             num_weeks=num_weeks, use_cache=use_cache
         )
 
+    def sources(self, num_weeks: int = 4) -> List[SourceBase]:
+        return [
+            c(use_cache=self.use_cache, num_weeks=num_weeks)
+            for c in self.source_classes
+        ]
+
     def dump_list(self):
         import pandas as pd
         rows = []
@@ -82,12 +88,6 @@ class DataSources:
         )
         print(df.to_markdown(index=False))
         print(len(df))
-
-    def sources(self, num_weeks: int = 4):
-        return [
-            c(use_cache=self.use_cache, num_weeks=num_weeks)
-            for c in self.source_classes
-        ]
 
     def dump_snapshot(self, num_weeks: int = 4):
         for s in self.sources(num_weeks=num_weeks):
@@ -452,7 +452,7 @@ def _string_filter(s: str, filter: Optional[Union[str, List[str]]]):
     if not filter:
         return True
     if isinstance(filter, str):
-        filter = [s]
+        filter = [filter]
     for f in filter:
         if fnmatch.fnmatchcase(s, f):
             return True
