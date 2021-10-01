@@ -25,6 +25,12 @@ class Goeppingen(TevisBaseScraper):
     BASE_URL = "https://termin.landkreis-goeppingen.de"
 
 
+class Goettingen(TevisBaseScraper):
+    ID = "goettingen"
+    NAME = "Stadt Göttingen"
+    BASE_URL = "https://termin.goettingen.de"
+
+
 class Heidelberg(TevisBaseScraper):
     ID = "heidelberg"
     NAME = "Stadt Heidelberg"
