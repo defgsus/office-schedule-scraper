@@ -140,6 +140,12 @@ class Paderborn(TermineReservierenBase):
     BASE_URL = "https://termine-reservieren.de/termine/paderborn"
 
 
+class Rastatt(TermineReservierenBase):
+    ID = "rastatt"
+    NAME = "Stadt Rastatt"
+    BASE_URL = "https://termine-reservieren.de/termine/rastatt"
+
+
 class Salzgitter(TermineReservierenBase):
     ID = "salzgitter"
     NAME = "Stadt Salzgitter"
