@@ -81,6 +81,7 @@ class DataSources:
             .sort_values("name")
         )
         print(df.to_markdown(index=False))
+        print(len(df))
 
     def sources(self, num_weeks: int = 4):
         return [
@@ -90,7 +91,11 @@ class DataSources:
 
     def dump_snapshot(self, num_weeks: int = 4):
         for s in self.sources(num_weeks=num_weeks):
-            data = s.make_snapshot()
+            try:
+                data = s.make_snapshot()
+            except:
+                print(f"\nERROR IN {s.ID}\n")
+                raise
             print(f"---------- {s.ID} ----------")
             print(json.dumps(data, indent=2))
 
