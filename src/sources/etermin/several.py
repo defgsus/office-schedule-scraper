@@ -14,6 +14,7 @@ HAND_PICKED = [
     ("lkcoesfeld", "Kreis Coesfeld", "kreiscoesfeld"),
     ("daunvg", "Verbandsgemeindeverwaltung Daun", "vgdaun"),
     ("dormagen", "Stadt Dormagen", "stadtdormagen"),
+    ("deggendorf", "Landratsamt Deggendorf", "LRA-DEG-Termin"),
     ("duelmen", "Stadt Dülmen", "duelmen"),
     ("elitheratest", "Corona TESTZENTRUM im Elithera", "testzentrum1"),
     ("fuerthtest", "SARS-CoV-2 Testzentrum der Stadt Fürth", "Testzentrum_agnf"),
