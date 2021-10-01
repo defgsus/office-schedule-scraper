@@ -38,6 +38,12 @@ class KreisWesel(TevisBaseScraper):
     BASE_URL = "https://tevis.krzn.de/tevisweb080"
 
 
+class Ludwigshafen(TevisBaseScraper):
+    ID = "ludwigshafen"
+    NAME = "Kreis Ludwigshfen"
+    BASE_URL = "https://tevisweb.ludwigshafen.de"
+
+
 class Mainz(TevisBaseScraper):
     ID = "mainz"
     NAME = "Stadt Mainz"
