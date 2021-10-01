@@ -19,6 +19,13 @@ class Heidelberg(TevisBaseScraper):
     BASE_URL = "https://tevis-online.heidelberg.de"
 
 
+# TODO: location name/title does not work for this page
+class KielEma(TevisBaseScraper):
+    ID = "kielema"
+    NAME = "Kiel Einwohnermeldeamt"
+    BASE_URL = "https://terminvergabe-ema-zulassung.kiel.de/tevisema"
+
+
 class KreisSoest(TevisBaseScraper):
     ID = "kreissoest"
     NAME = "Kreis Soest"
@@ -27,7 +34,7 @@ class KreisSoest(TevisBaseScraper):
 
 class KreisWesel(TevisBaseScraper):
     ID = "kreiswesel"
-    NAME = "Kreis Wesel"
+    NAME = "Kreis Wesel"  # or Kreis Viersen?
     BASE_URL = "https://tevis.krzn.de/tevisweb080"
 
 

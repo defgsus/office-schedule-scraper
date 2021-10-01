@@ -140,13 +140,17 @@ class TevisBaseScraper(SourceBase):
         soup = self.get_html_soup(f"{self.BASE_URL}/select2?md={md}")
         for form in soup.find_all("form", {"class": "cnc-form"}):
             cnc_item = form.find("input", {"class": "cnc-item"})
+            title = ""
+            a = form.find("a")
+            if a:
+                title = a.text.strip()
             cnc.append({
                 "md": md,
                 "mdt": form.find("input", {"name": "mdt"}).get("value"),
                 "cnc": cnc_item.get("name"),
                 "calendar": cnc_item.get("data-tevis-calendars") or cnc_item.get("data-tevis-calendar"),
                 "location": self._short_set(cnc_item.get("data-tevis-locations")),
-                "title": form.find("a").text.strip(),
+                "title": title,
             })
 
         if not cnc:
