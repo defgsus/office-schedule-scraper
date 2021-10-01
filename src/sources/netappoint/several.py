@@ -156,3 +156,18 @@ class SrAachen(NetAppointBase):
     NAME = "Städteregion Aachen"
     BASE_URL = "https://terminmanagement.regioit-aachen.de/sr_aachen"
     NA_COMPANY = "staedteregion-aachen"
+
+
+class WuppertalGeo(NetAppointBase):
+    ID = "wuppertalgeo"
+    NAME = "Stadt Wuppertal Geodatenzentrum"
+    BASE_URL = "https://terminvergabe2.wuppertal.de"
+    NA_COMPANY = "stadtwuppertal-geo"
+    NA_EXTRA_PARAMS = ("cur_cause=0", )
+
+
+class WuppertalGewerbe(NetAppointBase):
+    ID = "wuppertalgw"
+    NAME = "Stadt Wuppertal Gewerbecenter"
+    BASE_URL = "https://terminvergabe2.wuppertal.de"
+    NA_COMPANY = "wuppertal-gewerbe"
