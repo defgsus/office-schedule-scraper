@@ -213,6 +213,7 @@ The scraped interfaces which are used by most websites:
 - **tevis**: https://www.kommunix.de/produkte/tevis/
 - **netappoint**: http://www.edv-kahlert.de/produkte/Netcallup/netalarmpro1.htm
 - **etermin**: https://www.etermin.net/  
+- **tempus**: http://berner-telecom.de/
 
 
 ### Data details
@@ -386,12 +387,6 @@ fit the perceived reality.
     - https://cqm.cleverq.de/public/appointments/Zulassung-Segeberg/index.html?lang=de
     - https://cqm.cleverq.de/public/appointments/norderstedt/index.html?lang=de
     
-- https://tempus-termine.com/termine/index.php?anlagennr=12 (by Berner Telecom-Dienste - Wuppertal.) 
-  
-  By searching through the ids, they seem to have maybe 40 real offices behind. 
-  Unfortunately there's no json and many pages are styled or made 
-  differently. Would be a good deal of work..
-
 - https://www.buergerserviceportal.de/
 
   They require registration.

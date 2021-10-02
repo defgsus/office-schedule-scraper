@@ -14,19 +14,53 @@ class TempusBaseScraper(SourceBase):
     BASE_URL = "https://tempus-termine.com/termine/index.php"
     TEMPUS_ID = None  # replace with "anlagennr"
 
+    NEEDS_INCLUDE = True  # currently disable by default
+    
     _RE_URL_DATE = re.compile(r".*datum=(\d\d\d\d-\d\d-\d\d).*")
+    _RE_LOC_ID = re.compile(r".*standortrowid=(\d+).*")
+    _RE_QUEUE_ID = re.compile(r".*schlangennr=(\d+).*")
+    _RE_QUEUES_ID = re.compile(r".*schlangen=([\d-]+).*")
+    _RE_TASKS = re.compile(r".*tasks=(\d+).*")
     _RE_TIME = re.compile(r".*(\d\d:\d\d).*")
 
     @classmethod
     def index_url(cls) -> str:
         return f"{cls.BASE_URL}?anlagennr={cls.TEMPUS_ID}"
 
+    @classmethod
+    def _convert_snapshot(
+            cls,
+            dt: datetime.datetime,
+            data: Union[dict, list],
+            as_datetime: bool = False,
+    ) -> Optional[List[dict]]:
+        ret_data = []
+        for cal in data["calendars"]:
+            dates = []
+            for day, times in cal["dates"].items():
+                for time in times:
+                    dates.append(f"{day} {time}:00")
+
+            name = cal["category"]
+            if cal.get("sub_category"):
+                name = f'{cal["sub_category"]}|{name}'
+
+            for key in ("loc", "task", "queue"):
+                name = f"{name}|{cal.get(key) or '-'}"
+
+            ret_data.append({
+                "location_id": f'{cal.get("loc") or "-"}/{cal.get("task") or "-"}',
+                "location_name": name,
+                "dates": dates,
+            })
+        return ret_data
+
     def make_snapshot(self):
         options = self.tempus_get_options()
         # print(json.dumps(options, indent=2))
 
         calendars = self.tempus_get_calendars(options)
-
+        #exit()
         return {
             "options": options["options"],
             "calendars": calendars
@@ -137,12 +171,12 @@ class TempusBaseScraper(SourceBase):
                     options_list.append(entry)
         return options_list
 
-    def tempus_get_calendars(self, options: dict) -> dict:
+    def tempus_get_calendars(self, options: dict) -> List[dict]:
         categories = {}
         for o in options["options"]:
             categories.setdefault(o["category"], []).append(o)
 
-        ret_calendars = {}
+        ret_calendars = []
         for category, cat_options in categories.items():
             form_data = {}
             for o in cat_options:
@@ -155,13 +189,14 @@ class TempusBaseScraper(SourceBase):
 
             if form_data:
                 for cal_id, calendar in self.tempus_yield_calendar(category, options["url"], form_data):
-                    ret_calendars[cal_id] = calendar
+                    ret_calendars.append({**cal_id, "dates": calendar})
 
         return ret_calendars
 
     def tempus_yield_calendar(
             self, category: str, url: str, form_data: dict
-    ) -> Generator[Tuple[str, Dict[str, List[str]]], None, None]:
+    ) -> Generator[Tuple[Dict, Dict[str, List[str]]], None, None]:
+        # print("\nYIELD", category, url)
         soup = self.get_html_soup(self._full_url(url), method="POST", data=form_data)
         soup = self.tempus_skip_information(soup)
         soup_str = str(soup)
@@ -177,39 +212,57 @@ class TempusBaseScraper(SourceBase):
                 or "Bürgerbüros und frühestmögliche Termine" in soup_str
                 or "Bürgerämter und<br/>frühestmögliche Termine" in soup_str
                 or "Zulassungsstelle und<br/>frühestmögliche Termine" in soup_str
+                or "Bäder und<br/>frühestmögliche Schwimmzeit" in soup_str
         ):
-            yield category, self.tempus_get_calendar_page(soup)
+            cal_id, dates = self.tempus_get_calendar_page(soup)
+            if cal_id:
+                cal_id["category"] = category
+                yield cal_id, dates
 
         # split into different locations
         else:
-            num_locations = 0
+            a_tags = []
             for a in soup.find_all("a", {"class": "infolink"}):
                 if "Uhr" not in a.text:
-                    sub_category = a.text.strip()
-                    href = a.attrs["href"]
-                    sub_soup = self.get_html_soup(self._full_url(href))
-                    yield f"{category}|{sub_category}", self.tempus_get_calendar_page(sub_soup)
-                    num_locations += 1
+                    a_tags.append(a)
 
-            if not num_locations:
+            if not a_tags:
                 ul = soup.find("ul", {"id": "nav_menu2"})
                 for li in ul.find_all("li"):
                     a = li.find("a")
-                    if a:
-                        sub_category = a.text.strip()
-                        if sub_category.startswith("Termine in "):
-                            sub_category = sub_category[11:]
+                    if a and not a.text.endswith("Uhr"):
+                        a_tags.append(a)
 
-                        href = a.attrs["href"]
-                        sub_soup = self.get_html_soup(self._full_url(href))
-                        yield f"{category}|{sub_category}", self.tempus_get_calendar_page(sub_soup)
-                        num_locations += 1
-
-            if not num_locations:
+            if not a_tags:
                 print(soup)
                 raise ValueError(f"{self.ID}/{self.TEMPUS_ID} No locations found for {category} {url}")
 
-    def tempus_get_calendar_page(self, soup) -> Dict[str, List[str]]:
+            for a in a_tags:
+                sub_category = a.text.strip()
+                if sub_category.startswith("Termine in "):
+                    sub_category = sub_category[11:]
+
+                href = a.attrs["href"]
+                sub_soup = self.get_html_soup(self._full_url(href))
+                cal_id, dates = self.tempus_get_calendar_page(sub_soup)
+                if cal_id:
+                    cal_id["category"] = category
+                    cal_id["sub_category"] = sub_category
+                    yield cal_id, dates
+
+    def get_tempus_calendar_url_id(self, url: str) -> Dict[str, str]:
+        ret = {}
+        for key, expr in (
+                ("date", self._RE_URL_DATE),
+                ("loc", self._RE_LOC_ID),
+                ("queue", self._RE_QUEUE_ID),
+                ("task", self._RE_TASKS),
+        ):
+            match = expr.match(url)
+            ret[key] = match.groups()[0] if match else None
+        return ret
+
+    def tempus_get_calendar_page(self, soup) -> Tuple[Optional[Dict], Dict[str, List[str]]]:
         soup = self.tempus_skip_information(soup)
 
         event_dates = []
@@ -217,18 +270,43 @@ class TempusBaseScraper(SourceBase):
         if not table:
             # then it's probably the cancellation screen
             if soup.find("table", {"class": "appointment"}):
-                return {}
+                return None, {}
 
             print(soup)
             raise ValueError("No table found")
 
+        cal_id = None
+
         for table in soup.find_all("table", {"class": "cal"}):
             for td in table.find_all("td", {"class": "monatevent"}):
                 url = td.find("a").attrs["href"]
+
+                if not cal_id:
+                    cal_id = self.get_tempus_calendar_url_id(url)
+                    cal_id.pop("date")
+                    # print("WILL", cal_id, url)
+
                 match = self._RE_URL_DATE.match(url)
                 event_dates.append({
                     "date": match.groups()[0],
                     "url": url,
+                })
+
+        event_dates.sort(key=lambda e: e["date"])
+
+        # generate new URLs for specified self.num_weeks
+        if event_dates:
+            max_date = str((self.now() + datetime.timedelta(days=self.num_weeks * 7)).date())
+            while event_dates[-1]["date"] < max_date:
+                next_date = str((
+                    datetime.datetime.strptime(event_dates[-1]["date"], "%Y-%m-%d")
+                    + datetime.timedelta(days=1)
+                ).date())
+                event_dates.append({
+                    "date": next_date,
+                    "url": event_dates[-1]["url"].replace(
+                        f"datum={event_dates[-1]['date']}", f"datum={next_date}"
+                    )
                 })
 
         ret_dates = {}
@@ -236,7 +314,8 @@ class TempusBaseScraper(SourceBase):
             times = self.tempus_get_calendar_day_times(event)
             if times:
                 ret_dates[event["date"]] = times
-        return ret_dates
+
+        return cal_id, ret_dates
 
     def tempus_get_calendar_day_times(self, event: dict) -> List[str]:
         soup = self.get_html_soup(self._full_url(event["url"]))
