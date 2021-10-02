@@ -294,9 +294,14 @@ class TempusBaseScraper(SourceBase):
 
         event_dates.sort(key=lambda e: e["date"])
 
-        # generate new URLs for specified self.num_weeks
+        # limit to our self.num_weeks range
         if event_dates:
             max_date = str((self.now() + datetime.timedelta(days=self.num_weeks * 7)).date())
+            while event_dates and event_dates[-1]["date"] > max_date:
+                event_dates.pop(-1)
+
+        if event_dates:
+            # generate new URLs for specified self.num_weeks
             while event_dates[-1]["date"] < max_date:
                 next_date = str((
                     datetime.datetime.strptime(event_dates[-1]["date"], "%Y-%m-%d")
