@@ -15,7 +15,7 @@ class TempusBaseScraper(SourceBase):
     TEMPUS_ID = None  # replace with "anlagennr"
 
     NEEDS_INCLUDE = True  # currently disable by default
-    
+
     _RE_URL_DATE = re.compile(r".*datum=(\d\d\d\d-\d\d-\d\d).*")
     _RE_LOC_ID = re.compile(r".*standortrowid=(\d+).*")
     _RE_QUEUE_ID = re.compile(r".*schlangennr=(\d+).*")
