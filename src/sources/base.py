@@ -40,6 +40,9 @@ class SourceBase:
     REQUEST_DELAY = 0
     # provide a name to exclude from parallel processing
     MULTI_PROCESS_GROUP: Optional[str] = None
+    # if in process group, how many in parallel?
+    MULTI_PROCESS_MAX: Optional[int] = None
+
     # set to True if this scraper should not be used by default
     NEEDS_INCLUDE = False
 
@@ -63,6 +66,9 @@ class SourceBase:
         self.num_weeks = num_weeks
 
         self.new_session()
+
+    def __repr__(self):
+        return f"{type(self).__name__}({self.ID})"
 
     @classmethod
     def index_url(cls) -> str:

@@ -143,6 +143,16 @@ class DataSources:
                 print(s.ID, "@", dt)
                 print(df.to_markdown())
 
+    def dump_snapshot_dates(self):
+        import pandas as pd
+        rows = []
+        for s in self.sources():
+            for dt, fn in s.iter_snapshot_filenames():
+                rows.append({"date": dt, "source_id": s.ID})
+        df = pd.DataFrame(rows)
+        df = df.sort_values("date").set_index("date")
+        print(df.to_string())
+
     def make_snapshot(self, num_weeks: int = 4, processes: int = 1):
         sources = self.sources(num_weeks=num_weeks)
 
@@ -151,13 +161,22 @@ class DataSources:
                 self._make_and_store_snapshot(s)
         else:
             source_groups = dict()
+            group_indices = dict()
             for s in sources:
                 if not s.MULTI_PROCESS_GROUP:
                     source_groups[s.ID] = [s]
                 else:
-                    source_groups.setdefault(s.MULTI_PROCESS_GROUP, [])
-                    source_groups[s.MULTI_PROCESS_GROUP].append(s)
+                    group_id = s.MULTI_PROCESS_GROUP
+
+                    if s.MULTI_PROCESS_MAX:
+                        group_idx = group_indices.get(s.MULTI_PROCESS_GROUP, 0)
+                        group_id = f"{group_id}-{group_idx}"
+                        group_indices[s.MULTI_PROCESS_GROUP] = (group_idx + 1) % s.MULTI_PROCESS_MAX
+
+                    source_groups.setdefault(group_id, []).append(s)
             
+            #for key, value in source_groups.items():
+            #    print(key, value)
             pool = Pool(processes)
             pool.map(self._make_and_store_snapshot, list(source_groups.values()))
 

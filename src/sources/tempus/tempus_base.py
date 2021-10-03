@@ -9,7 +9,8 @@ class TempusBaseScraper(SourceBase):
 
     """
     SCRAPER_TYPE = "tempus"
-    MULTI_PROCESS_GROUP = "tempus"  # do not scrape the website in parallel
+    MULTI_PROCESS_GROUP = "tempus"  # be kind to website bandwidth
+    MULTI_PROCESS_MAX = 3
 
     BASE_URL = "https://tempus-termine.com/termine/index.php"
     TEMPUS_ID = None  # replace with "anlagennr"
