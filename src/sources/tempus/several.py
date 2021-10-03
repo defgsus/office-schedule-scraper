@@ -37,7 +37,8 @@ HAND_PICKED = (
     (41, 'eschwege', 'Stadt Eschwege'),
     (43, 'leichlingen', 'Stadt Leichlingen'),
     (45, 'kherfordkfz', 'Kreis Herford Straßenverkehrsamt'),
-    # TODO: This is deactivated and replaced by self-hosted https://www.essen.de/rathaus/onlinetermine_der_stadtessen.de.html
+    # This is deactivated and replaced by self-hosted https://www.essen.de/rathaus/onlinetermine_der_stadtessen.de.html
+    #   which is handled in essen.py
     #(48, 'essen', 'Stadt Essen'),
     (49, 'rheingautaunus', 'Rheingau-Taunus-Kreis'),
     (50, 'neuulm', 'Stadt Neu-Ulm'),

@@ -14,6 +14,7 @@ class TempusBaseScraper(SourceBase):
 
     BASE_URL = "https://tempus-termine.com/termine/index.php"
     TEMPUS_ID = None  # replace with "anlagennr"
+    TEMPUS_EXTRA_PARAMS = None
 
     _RE_URL_DATE = re.compile(r".*datum=(\d\d\d\d-\d\d-\d\d).*")
     _RE_LOC_ID = re.compile(r".*standortrowid=(\d+).*")
@@ -24,7 +25,10 @@ class TempusBaseScraper(SourceBase):
 
     @classmethod
     def index_url(cls) -> str:
-        return f"{cls.BASE_URL}?anlagennr={cls.TEMPUS_ID}"
+        url = f"{cls.BASE_URL}?anlagennr={cls.TEMPUS_ID}"
+        if cls.TEMPUS_EXTRA_PARAMS:
+            url += "&" + "&".join(cls.TEMPUS_EXTRA_PARAMS)
+        return url
 
     @classmethod
     def _convert_snapshot(
@@ -85,13 +89,23 @@ class TempusBaseScraper(SourceBase):
         main_menu = form.find("ul", {"class": "menuepunkt"})
         if main_menu:
             for sub_menu_container in main_menu.find_all("li", recursive=False):
+                category = None
+                if sub_menu_container.find("h3"):
+                    category = sub_menu_container.find("h3").text.strip()
                 ul = sub_menu_container.find("ul", {"class": "untermenuepunkt"})
                 if ul:
-                    category = sub_menu_container.text.splitlines()[0].strip()
+                    if not category:
+                        category = sub_menu_container.text.splitlines()[0].strip()
                     for li in ul.find_all("li"):
+                        if li.find("span"):
+                            name = li.find("span").text.strip()
+                        elif li.find("div", {"class": "anliegen"}):
+                            name = li.find("div", {"class": "anliegen"}).text.strip()
+                        else:
+                            raise ValueError(f"Did not find option name in {self}, {self.TEMPUS_ID}, {category}")
                         entry = {
                             "category": category,
-                            "name": li.find("span").text.strip(),
+                            "name": name,
                             "id": None,
                         }
 
@@ -128,6 +142,7 @@ class TempusBaseScraper(SourceBase):
                             "id": form_id,
                         }
                         options_list.append(entry)
+
         return options_list
 
     def tempus_get_options_list_2(self, soup, form):
@@ -205,6 +220,7 @@ class TempusBaseScraper(SourceBase):
 
         if not (
                 "Der stadtweit früheste Termin ist" in soup_str
+                or "Frühestmögliche Termine" in soup_str
                 or "Standorte und frühestmögliche Termine" in soup_str
                 or "Standorte und<br/>frühestmögliche Termine" in soup_str
                 or "Bürgerbüros und<br/>frühestmögliche Termine" in soup_str
@@ -242,12 +258,13 @@ class TempusBaseScraper(SourceBase):
                     sub_category = sub_category[11:]
 
                 href = a.attrs["href"]
-                sub_soup = self.get_html_soup(self._full_url(href))
-                cal_id, dates = self.tempus_get_calendar_page(sub_soup)
-                if cal_id:
-                    cal_id["category"] = category
-                    cal_id["sub_category"] = sub_category
-                    yield cal_id, dates
+                if "standortrowid" in href:
+                    sub_soup = self.get_html_soup(self._full_url(href))
+                    cal_id, dates = self.tempus_get_calendar_page(sub_soup)
+                    if cal_id:
+                        cal_id["category"] = category
+                        cal_id["sub_category"] = sub_category
+                        yield cal_id, dates
 
     def get_tempus_calendar_url_id(self, url: str) -> Dict[str, str]:
         ret = {}
@@ -269,6 +286,8 @@ class TempusBaseScraper(SourceBase):
         if not table:
             # then it's probably the cancellation screen
             if soup.find("table", {"class": "appointment"}):
+                return None, {}
+            if "Leider sind derzeit alle Termine ausgebucht." in str(soup):
                 return None, {}
 
             print(soup)
