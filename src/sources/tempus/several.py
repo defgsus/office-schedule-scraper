@@ -87,7 +87,7 @@ HAND_PICKED = (
     (136, 'herfordimpf', 'Kreis Herford Impfzentrum'),
     # TODO: their html might be quite different
     #(153, 'boeblingen', 'Kreis Böblingen'),
-    (155, 'schwieberdingen', 'Online-Termin Vereinbaren'),
+    (155, 'schwieberdingen', 'Stadt Schwieberdingen'),
     (161, 'bergkamen', 'Stadt Bergkamen'),
 )
 
