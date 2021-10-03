@@ -97,7 +97,8 @@ def main(args):
     elif args.command == "dump-changes":
         sources.dump_snapshot_changes(resample=args.resample)
 
-
+    elif args.command == "debug":
+        sources.dump_snapshot_dates()
     else:
         print(f"Invalid command '{args.command}'")
         exit(1)
