@@ -51,6 +51,9 @@ class TempusBaseScraper(SourceBase):
             for key in ("loc", "task", "queue"):
                 name = f"{name}|{cal.get(key) or '-'}"
 
+            if as_datetime:
+                dates = [datetime.datetime.strptime(d, "%Y-%m-%d %H:%M:%S") for d in dates]
+
             ret_data.append({
                 "location_id": f'{cal.get("loc") or "-"}/{cal.get("task") or "-"}',
                 "location_name": name,

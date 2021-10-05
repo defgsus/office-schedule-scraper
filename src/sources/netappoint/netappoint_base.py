@@ -41,7 +41,7 @@ class NetAppointBase(SourceBase):
                 "location_name": row["location"],
                 "dates": [
                     (
-                        datetime.datetime.strptime(d[0], "%Y-%m-%d %H:%M")
+                        datetime.datetime.strptime(d, "%Y-%m-%d %H:%M")
                         if as_datetime else d + ":00"
                     )
                     for d in row["dates"]
