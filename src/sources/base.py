@@ -232,7 +232,20 @@ class SourceBase:
             date_from: Optional[str] = None,
             date_to: Optional[str] = None,
     ) -> Generator[Tuple[datetime.datetime, Path], None, None]:
-        for fn in sorted((cls.SNAPSHOT_DIR / cls.ID).glob("*/*.json")):
+
+        date_paths = sorted((cls.SNAPSHOT_DIR / cls.ID).glob("*"))
+        if date_from:
+            date_paths = list(filter(
+                lambda p: str(p).split("/")[-1] >= date_from[:7],
+                date_paths
+            ))
+
+        filenames = []
+        for d in date_paths:
+            for fn in (cls.SNAPSHOT_DIR / cls.ID).glob(f"{str(d).split('/')[-1]}/*.json"):
+                filenames.append(fn)
+
+        for fn in sorted(filenames):
             date_str = fn.name[:19]
             if date_from and not date_str >= date_from:
                 continue
@@ -265,7 +278,21 @@ class SourceBase:
             verbose: bool = False,
     ) -> Generator[Tuple[datetime.datetime, bool, Union[dict, list]], None, None]:
         previous_data = None
-        iterable = sorted((cls.SNAPSHOT_DIR / cls.ID).glob("*/*.json"))
+
+        date_paths = sorted((cls.SNAPSHOT_DIR / cls.ID).glob("*"))
+        if date_from:
+            date_paths = list(filter(
+                lambda p: str(p).split("/")[-1] >= date_from[:7],
+                date_paths
+            ))
+
+        filenames = []
+        for d in date_paths:
+            for fn in (cls.SNAPSHOT_DIR / cls.ID).glob(f"{str(d).split('/')[-1]}/*.json"):
+                filenames.append(fn)
+        filenames.sort()
+
+        iterable = filenames
         if verbose:
             from tqdm import tqdm
             iterable = tqdm(iterable)

@@ -173,12 +173,9 @@ class Exporter:
             return
 
         all_dates = [str(d) for d in sorted(all_dates)]
-
-        #rows = source.make_export_table(location_data_list, all_dates)
-        #rows.sort(key=lambda row: row[2])
-        #rows.sort(key=lambda row: row[0])
-
-        #print(f"{source_description}: snapshot dates: {rows[0][0]} to {rows[-1][0]}")
+        
+        #if all_dates:
+        #    print(f"\n\n{source_description} {all_dates[0]} {all_dates[-1]} {len(all_dates)}\n")
 
         print(f"{source_description}: storing {filename}")
         os.makedirs(export_path, exist_ok=True)
@@ -186,7 +183,10 @@ class Exporter:
             with open(filename, "w") as fp:
                 writer = csv.writer(fp)
                 writer.writerow(["date", "source_id", "location_id"] + all_dates)
-                for row in tqdm(source.iter_export_rows(location_data_list, all_dates), desc=f"{source_description}: writing rows"):
+                for row in tqdm(
+                        source.iter_export_rows(location_data_list, all_dates),
+                        desc=f"{source_description}: writing rows"
+                ):
                     writer.writerow(row)
         except:
             if filename.exists():

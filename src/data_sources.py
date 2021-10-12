@@ -147,7 +147,7 @@ class DataSources:
         import pandas as pd
         rows = []
         for s in self.sources():
-            for dt, fn in s.iter_snapshot_filenames():
+            for dt, fn in s.iter_snapshot_filenames(date_from=self.date_from, date_to=self.date_to):
                 rows.append({"date": dt, "source_id": s.ID})
         df = pd.DataFrame(rows)
         df = df.sort_values("date").set_index("date")
