@@ -27,6 +27,10 @@ def parse_args():
         help="wildcard pattern for sources to exclude"
     )
     parser.add_argument(
+        "-it", "--include-type", type=str, nargs="+",
+        help="wildcard pattern for scraper types to include"
+    )
+    parser.add_argument(
         "-d", "--days-back", type=int, default=8,
         help="Number of days in the past to start export"
     )
@@ -42,6 +46,10 @@ def parse_args():
         "-nc", "--no-compressed", type=bool, default=False, const=True, nargs="?",
         help="Do not run compression"
     )
+    parser.add_argument(
+        "-ic", "--incomplete", type=bool, default=False, const=True, nargs="?",
+        help="Export incomplete final week (for development)"
+    )
 
     return parser.parse_args()
 
@@ -51,14 +59,15 @@ class Exporter:
     def __init__(
             self,
             days_back: int,
-            include: Optional[str] = None,
-            exclude: Optional[str] = None,
+            include: Optional[Union[str, List[str]]] = None,
+            exclude: Optional[Union[str, List[str]]] = None,
+            include_type: Optional[Union[str, List[str]]] = None,
             with_unchanged: bool = True,
             export_raw_path: Union[str, Path] = "export_raw",
             export_path: Union[str, Path] = "export",
     ):
         self.days_back = days_back
-        self.sources = DataSources(include=include, exclude=exclude)
+        self.sources = DataSources(include=include, exclude=exclude, include_type=include_type)
         self.with_unchanged = with_unchanged
         self.date_from = datetime.datetime.now() - datetime.timedelta(days=self.days_back)
         self.date_from = self.date_from.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -66,9 +75,14 @@ class Exporter:
         self.export_path = Path(export_path)
         self.meta_data = dict()
 
-    def export(self):
+    def export(self, incomplete: bool = False):
         """
-        Exports only full iso-weeks from the raw snapshots to canonical csv files
+        Exports only full iso-weeks from the raw snapshots to canonical csv files.
+
+        A file for each source_id is only exported when a new week starts and
+        ends, that is, if there are snapshots before and after the week.
+
+        :param incomplete: bool, export the final week even if there is no follow-up snapshot
         """
         meta_data_filename = self.export_path / "metadata.json"
         if meta_data_filename.exists():
@@ -101,6 +115,9 @@ class Exporter:
 
                     if do_export:
                         last_week_data.append((dt, data))
+
+            if incomplete and last_week_data:
+                self._export_week(source, old_iso_week, last_week_data, source_description)
 
         self._sort_meta_data()
 
@@ -249,12 +266,14 @@ if __name__ == "__main__":
     args = parse_args()
     exporter = Exporter(
         include=args.include,
+        include_type=args.include_type,
         exclude=args.exclude,
         days_back=args.days_back,
         export_raw_path=args.export_raw,
         export_path=args.export,
     )
 
-    exporter.export()
+    exporter.export(incomplete=args.incomplete)
+
     if not args.no_compressed:
         exporter.export_compressed()
