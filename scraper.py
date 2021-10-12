@@ -13,7 +13,7 @@ def parse_args():
             "list",
             "snapshot", "dump-snapshot", "dump-snapshot-table",
             "snapshot-status", "changes-status",
-            "dump-convert", "dump-changes",
+            "dump-convert", "dump-convert-meta", "dump-changes",
             "debug"
         ],
         help="Command to execute",
@@ -93,6 +93,9 @@ def main(args):
 
     elif args.command == "dump-convert":
         sources.dump_convert_snapshots()
+
+    elif args.command == "dump-convert-meta":
+        sources.dump_convert_snapshots_meta()
 
     elif args.command == "dump-changes":
         sources.dump_snapshot_changes(resample=args.resample)

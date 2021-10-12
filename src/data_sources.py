@@ -271,6 +271,24 @@ class DataSources:
         data = self.convert_snapshots()
         print(json.dumps(data, indent=2, cls=JsonEncoder))
 
+    def dump_convert_snapshots_meta(self, with_unchanged: bool = False):
+        from tqdm import tqdm
+        sources = self.sources()
+        for s in tqdm(sources):
+            for dt, unchanged, snapshot_data in s.iter_snapshot_data(
+                    date_from=self.date_from, date_to=self.date_to,
+                    with_unchanged=with_unchanged
+            ):
+                try:
+                    data = s.convert_snapshot_meta(snapshot_data)
+                except Exception as e:
+                    print(f"\nERROR in {s.ID} @ {dt}")
+                    print(snapshot_data)
+                    raise
+
+                print(f"\nSNAPSHOT META {s.ID} @ {dt}")
+                print(json.dumps(data, indent=2))
+
     def convert_snapshots(
             self,
             with_unchanged: bool = False,

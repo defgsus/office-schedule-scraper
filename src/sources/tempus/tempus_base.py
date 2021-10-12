@@ -61,6 +61,31 @@ class TempusBaseScraper(SourceBase):
             })
         return ret_data
 
+    @classmethod
+    def _convert_snapshot_meta(cls, data: Union[dict, list]) -> dict:
+        categories = {}
+        for o in data["options"]:
+            if o["category"] not in categories:
+                categories[o["category"]] = {
+                    "name": o["category"],
+                    "services": set()
+                }
+            service_name = o["name"].splitlines()[0].replace("Infolink", "").strip()
+            categories[o["category"]]["services"].add(service_name)
+
+        for v in categories.values():
+            v["services"] = sorted(v["services"])
+
+        loc_id_2_category = {}
+        for cal in data["calendars"]:
+            loc_id = f'{cal.get("loc") or "-"}/{cal.get("task") or "-"}'
+            cat_data = categories[cal["category"]].copy()
+            if cal.get("sub_category"):
+                cat_data["name"] = f'{cal["sub_category"]}: {cat_data["name"]}'
+            loc_id_2_category[loc_id] = cat_data
+
+        return loc_id_2_category
+
     def make_snapshot(self):
         options = self.tempus_get_options()
         # print(json.dumps(options, indent=2))
