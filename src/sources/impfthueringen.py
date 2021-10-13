@@ -50,7 +50,7 @@ class ImpfThueringen(SourceBase):
         return ret
 
     @classmethod
-    def make_export_table(cls, data_list: List[Tuple[datetime.datetime, dict]], all_dates: List[str]):
+    def iter_export_rows(cls, data_list: List[Tuple[datetime.datetime, List[dict]]], all_dates: List[str]):
         """
         Compress the free dates to 15 minutes snapshots because of the
         enormous amount of data
@@ -67,7 +67,7 @@ class ImpfThueringen(SourceBase):
 
         rows = []
         for (dt, source_id, location_id), dates in date_dict.items():
-            rows.append(
+            yield (
                 [
                     dt,
                     source_id,

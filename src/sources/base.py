@@ -128,23 +128,6 @@ class SourceBase:
         }
 
     @classmethod
-    def make_export_table(cls, data_list: List[Tuple[datetime.datetime, dict]], all_dates: List[str]):
-        rows = []
-        for dt, locations in data_list:
-            for loc in locations:
-                rows.append(
-                    [
-                        dt,
-                        str(loc["source_id"]),
-                        str(loc["location_id"]),
-                    ] + [
-                        "1" if date in loc["dates"] else ""
-                        for date in all_dates
-                    ]
-                )
-        return rows
-
-    @classmethod
     def iter_export_rows(cls, data_list: List[Tuple[datetime.datetime, List[dict]]], all_dates: List[str]):
         for locations in data_list:
             locations[1].sort(key=lambda l: l["location_id"])
