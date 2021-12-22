@@ -5,6 +5,7 @@ import json
 import datetime
 import traceback
 import unicodedata
+import warnings
 import re
 import time
 from copy import deepcopy
@@ -291,7 +292,11 @@ class SourceBase:
             dt = datetime.datetime.strptime(date_str, "%Y-%m-%d-%H-%M-%S")
             unchanged = "unchanged.json" in str(fn)
             if not unchanged:
-                data = json.loads(fn.read_text())
+                json_str = fn.read_text()
+                if not json_str:
+                    warnings.warn(f"{fn} is empty")
+                    continue
+                data = json.loads(json_str)
                 if not (isinstance(data, dict) and "unchanged" in data):
                     if not skip:
                         yield dt, False, data
